@@ -1,14 +1,12 @@
 import pandas as pd
-import data_loader
 import numpy as np
-from woba_weights import WOBA_WEIGHTS
-
-all_pitchers = data_loader.get_all_pitchers()
+from .woba_weights import WOBA_WEIGHTS
 
 
-def velocity():
+
+def velocity(season):
     fastballs = ('SI', 'FF', 'FC')
-    fb = all_pitchers[all_pitchers['pitch_type'].isin(fastballs)]
+    fb = season[season['pitch_type'].isin(fastballs)]
     fb["category"] = "fastball"
     fb["Leage_AVG_Velo"] = fb.groupby("category")["release_speed"].transform("mean").round(4)
 
@@ -16,15 +14,15 @@ def velocity():
     fb["differential"] = (fb["avg velo"] - fb["Leage_AVG_Velo"]).round(4)
     fb["count"] = fb.groupby("player_name")["avg velo"].transform("count")
     minimum = fb.groupby("player_name")["count"].transform("min")
-    fb=fb[minimum>100]
+    #fb=fb[minimum>100]
     
     fb = fb[["player_name", "pitch_type", "Leage_AVG_Velo", "avg velo", "differential"]]
     fb=fb.drop_duplicates(subset=["player_name"])
 
     return fb
 
-def movement():
-    df = all_pitchers.copy()
+def movement(season):
+    df = season.copy()
 
     categories = {
         "fastball": ["FF", "SI", "FC"],
@@ -48,15 +46,15 @@ def movement():
 
     df["count"] = df.groupby(["player_name", "pitch_type"])["induced_magnitude"].transform("count")
     minimum = df.groupby("player_name")["count"].transform("min")
-    df=df[minimum>100]
+    #df=df[minimum>50]
     df = df[["player_name", "pitch_category", "pitch_type", "induced_magnitude", "mean_movement", "league_avg_movement"]]
     df["differential"] = (df["mean_movement"] - df["league_avg_movement"]).round(4)
     return df
 
 
 
-def create_woba():
-    df = all_pitchers
+def create_woba(season):
+    df = season
 
     #####   BB AND IBB
     bb = df[df['events'].isin(["intent_walk", "walk"])]
@@ -121,7 +119,7 @@ def create_woba():
     ####    SF
     sfdb = df[df['events'].isin(["sac_fly", "sac_fly_double_play"])].groupby('player_name').size()
 
-    all_pitchers["sf"] = (
+    df["sf"] = (
         df["player_name"].map(sfdb).fillna(0).astype(int)
     )
 
@@ -130,10 +128,10 @@ def create_woba():
     df = df[["player_name", "game_date", "hbp", 'bb', 'ibb', '1b', '2b', '3b', 'hr', 'ab', 'sf']]
     return df
 
-def calculate_woba(first, last, year):
+def calculate_woba(first, last, year, season):
     #wOBA = ((0.697 * non intentional BB) + (0.727 * HBP) + (0.855 * 1B) + (1.248 * 2B) + (1.575 * 3B) + (2.014 * HR)/ AB + BB - IBB + SF + HBP)
 
-    df = create_woba()
+    df = create_woba(season).copy()
     df=df[df['player_name']==f"{last}, {first}"]
     hbp = df['hbp'].iloc[0]
     bb = df['bb'].iloc[0]
@@ -157,7 +155,7 @@ def calculate_woba(first, last, year):
 
     return wOBA
 
-def get_whif(first, last):
+def get_whif(first, last, season):
     """
           'hit_into_play',         'swinging_strike',
                     'foul',                    'ball',
@@ -168,7 +166,7 @@ def get_whif(first, last):
            'bunt_foul_tip',        'automatic_strike',
                 'pitchout',       'swinging_pitchout'
     """
-    df = all_pitchers
+    df = season.copy()
     
     swings = ('foul_tip', 'hit_into_play', 
               'foul', 'swinging_strike_blocked',
@@ -188,5 +186,3 @@ def get_whif(first, last):
     whiff=df["whiff"].iloc[0]
     
     return whiff
-
-get_whif("Chris", "Sale")

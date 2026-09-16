@@ -1,6 +1,7 @@
 import pandas as pd
-import pitcher_attributes as attr
+from . import pitcher_attributes as attr
 import numpy as np
+from . import data_loader
 
 average_whiff_rate = {
     2016: 0.236,
@@ -30,9 +31,41 @@ average_woba = {
 }
 
 
+
 def get_player(first, last, year):
-    vdf = attr.velocity()
-    mdf = attr.movement()
+    try:
+        season = data_loader.get_year(year)
+    except FileNotFoundError:
+        print(f"{year}: No data file")
+        return
+    player_name = f"{last}, {first}"
+
+    if season.empty or not season["player_name"].eq(player_name).any():
+        print(f"{year}: No data for {first} {last}")
+        return
+
+    vdf = attr.velocity(season)
+    mdf = attr.movement(season)
+
+    # Skip if required rating inputs are missing.
+    categories = set(
+        mdf.loc[
+            mdf["player_name"].eq(player_name),
+            "pitch_category"
+        ]
+    )
+
+    if not {"breaking", "fastball", "offspeed"}.issubset(categories):
+        print(f"{year}: Missing movement data")
+        return
+
+    if not vdf["player_name"].eq(player_name).any():
+        print(f"{year}: Missing velocity data")
+        return
+
+
+    vdf = attr.velocity(season)
+    mdf = attr.movement(season)
 
 
 
@@ -52,10 +85,13 @@ def get_player(first, last, year):
     + offspeed_break_diff * 0.30
     + fb_break_diff * 0.20
     ).round()
+
     vdf["velo_percentile"]=vdf["differential"].rank(pct=True) * 100
+
     velocity = vdf.loc[vdf["player_name"] == f"{last}, {first}","velo_percentile"].iloc[0].round()
-    wOBA = attr.calculate_woba(first, last, year)
-    whiff = attr.get_whif(first, last)/100
+
+    wOBA = attr.calculate_woba(first, last, year, season)
+    whiff = attr.get_whif(first, last, season)/100
 
     whiff_diff = (whiff - (average_whiff_rate[year])).round(4)
     wOBA_diff = (average_woba[year] - wOBA).round(4)
@@ -66,20 +102,15 @@ def get_player(first, last, year):
     1)
     
 
+    # Takes the percentile score and creates a 50-100 final score like video game ratings.
+    player_score = 50+(player_score/2)
+    velocity = 50+(velocity/2)
+    score = 50+(score/2)
 
+    print(year)
     print("Velocity:", velocity)
     print("Movement:", score)
     print("Whiff score:", round(whiff_score, 1))
     print("wOBA score:", round(woba_score, 1))
     print("Player score:", player_score)
 
-    """ 
-    Have the velo of break scores now need to create a 0-100 score system with the isolated era
-    """
-    print()
-    return 0
-
-
-
-
-get_player("Chris", "Sale", 2026)
