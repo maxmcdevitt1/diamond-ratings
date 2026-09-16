@@ -1,0 +1,31 @@
+                                            OBJECTIVE
+- Create a rating scale of every player on a teams roster based on how well they have performed in the past two seasons,
+    with a higher weight on the last season.
+
+- Put player into category of lineup, normal starter versus normal bench player.
+
+- Create player availability on durability metric
+
+- Create a team rating from the combined player rating.
+- Weight rating based on starting rotation
+
+- Predict each game in season based on the ratings.
+- Get final season predictions. 
+
+
+                                            CREATING PITCHER METRICS
+- Create raw pitcher attributes  based on fastball group velocity, mean break of all pitches on a weighted scale, and command derived
+from mean BB%.
+- Combine raw attributes with previous performance (isolated ERA) to create the player rating, with a heavier weight on past performance.
+
+
+                                            CREATING HITTER METRICS
+- Create raw attributes based on contact power and discipline. 
+- Power - ISO
+- Contact - Contact% (Contact Percentage): Contact made divided by swings. *Fangraphs
+
+
+
+*** Maybe Later *** >>> Estimate pitcher stamina as diminished velocity of: fastball group, command (BB), and break. 
+    Mulitiplied by the mean pitches thrown per game.
+
