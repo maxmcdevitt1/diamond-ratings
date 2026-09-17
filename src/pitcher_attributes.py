@@ -189,4 +189,14 @@ def get_whif(first, last, season):
 
 def get_control(first, last, season):
     df = season.copy()
-    return df
+    df = df[df["pitcher"] == f'{first} {last}']
+    df = df[df['pitch_type'] == 'ALL']
+    df = df['inferred_in'].iloc[0]
+
+    average = season.copy()
+    average = season[
+        (season["pitch_type"] == "ALL") &
+        (season["n"] >= 100)
+    ]
+    a = average['inferred_in'].median()
+    return df, a

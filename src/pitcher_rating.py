@@ -35,6 +35,7 @@ average_woba = {
 def get_player(first, last, year):
     try:
         season = data_loader.get_year(year)
+        
     except FileNotFoundError:
         print(f"{year}: No data file")
         return
@@ -46,6 +47,10 @@ def get_player(first, last, year):
 
     vdf = attr.velocity(season)
     mdf = attr.movement(season)
+    control = attr.get_control(first, last, data_loader.get_command(year))[0].round(4)
+    control_avg = attr.get_control(first, last, data_loader.get_command(year))[1].round(4)
+
+
 
     # Skip if required rating inputs are missing.
     categories = set(
@@ -63,12 +68,6 @@ def get_player(first, last, year):
         print(f"{year}: Missing velocity data")
         return
 
-
-    vdf = attr.velocity(season)
-    mdf = attr.movement(season)
-
-
-
     breaking_break = mdf[mdf["pitch_category"]=="breaking"]
     breaking_break["movement_percentile"] = breaking_break['differential'].rank(pct=True)*100
     velo_break = mdf[mdf["pitch_category"]=="fastball"]
@@ -80,7 +79,6 @@ def get_player(first, last, year):
     fb_break_diff = velo_break.loc[velo_break["player_name"] == f"{last}, {first}","movement_percentile"].iloc[0]
     offspeed_break_diff = offspeed_break.loc[offspeed_break["player_name"] == f"{last}, {first}","movement_percentile"].iloc[0]
 
-    control = attr.get_control(first, last, season)
 
     score = (
     breaking_break_diff * 0.50
@@ -110,8 +108,10 @@ def get_player(first, last, year):
     score = 50+(score/2)
 
     print(year)
-    print("Velocity:", velocity)
-    print("Movement:", score)
-    print("Whiff score:", round(whiff_score, 1))
-    print("wOBA score:", round(woba_score, 1))
-    print("Player score:", player_score)
+    print("Velocity: ", velocity)
+    print("Movement: ", score)
+    print("Whiff score: ", round(whiff_score, 1))
+    print("wOBA score: ", round(woba_score, 1))
+    print("Player score: ", player_score)
+    print("Command Score: ",control)
+    print("AVG Command: ", control_avg)
