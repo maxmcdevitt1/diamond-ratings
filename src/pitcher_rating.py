@@ -80,6 +80,8 @@ def get_player(first, last, year):
     fb_break_diff = velo_break.loc[velo_break["player_name"] == f"{last}, {first}","movement_percentile"].iloc[0]
     offspeed_break_diff = offspeed_break.loc[offspeed_break["player_name"] == f"{last}, {first}","movement_percentile"].iloc[0]
 
+    control = attr.get_control(first, last, season)
+
     score = (
     breaking_break_diff * 0.50
     + offspeed_break_diff * 0.30
@@ -113,4 +115,3 @@ def get_player(first, last, year):
     print("Whiff score:", round(whiff_score, 1))
     print("wOBA score:", round(woba_score, 1))
     print("Player score:", player_score)
-

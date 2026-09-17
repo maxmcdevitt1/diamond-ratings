@@ -186,3 +186,7 @@ def get_whif(first, last, season):
     whiff=df["whiff"].iloc[0]
     
     return whiff
+
+def get_control(first, last, season):
+    df = season.copy()
+    return df
