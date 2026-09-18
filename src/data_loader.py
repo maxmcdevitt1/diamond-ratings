@@ -1,6 +1,4 @@
-from pybaseball import  playerid_lookup
-from pybaseball import  statcast_pitcher
-from pybaseball import statcast
+from pybaseball import  playerid_lookup, statcast, statcast_batter
 
 import pandas as pd
 from pybaseball import cache
@@ -9,17 +7,16 @@ from pathlib import Path
 cache.enable()
 
 project_dir = Path(__file__).resolve().parent.parent
-filepath = project_dir / "data"/"project_data"
+filepath = project_dir / "data"
 def get_player(first, last):
-    return playerid_lookup(last, first)["key_mlbam"].iloc[0]
+    return playerid_lookup(last, first, fuzzy=True)["key_mlbam"].iloc[0]
 
 
-def get_pitcher_dataframe(first, last,start, end):
-    pitcher = get_player(first, last)
-    print(pitcher)
-    pitcher_df = statcast_pitcher(start, end, pitcher)
-    pitcher_df = pd.DataFrame(pitcher_df)
-    return pitcher_df
+def get_season_hitting(year):
+    data = pd.read_csv(filepath/"pitching_data"/"stats.csv")
+    return pd.DataFrame(data)
+
+
 
 def get_all_pitchers():
     for year in range(2018, 2027):
@@ -27,8 +24,8 @@ def get_all_pitchers():
         df = pd.DataFrame(all_pitchers)
         df.to_parquet(filepath/f'{year}.parquet')
         
-def get_year(year):
-    return pd.read_parquet(filepath/f'{year}.parquet')
+def get_season_pitching(year):
+    return pd.read_parquet(filepath/"pitching_data"/f'{year}.parquet')
 
 def get_command(year):
     y =  pd.read_csv(filepath/f'{year}command.csv')
@@ -37,4 +34,10 @@ def get_command(year):
 def get_fangraphs(year):
     return pd.DataFrame(pd.read_csv(\
         project_dir/'data'/'fangraphs'/f'fg_pitching_{year}.csv'))
-    
+
+def create_df(year):
+    command = get_command(year)
+    fangraphs = get_fangraphs(year)
+
+get_all_batters()
+

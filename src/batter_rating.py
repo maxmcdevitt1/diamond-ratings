@@ -1,8 +1,7 @@
 import pandas as pd
+from . import batter_attributes as attr
 import numpy as np
-from .woba_weights import WOBA_WEIGHTS
+from . import data_loader
 
-def get_war(df):
-    df=df.copy()
-    
+def get_player(first, last, year):
     
