@@ -9,7 +9,7 @@ from pathlib import Path
 cache.enable()
 
 project_dir = Path(__file__).resolve().parent.parent
-filepath = project_dir / "data"
+filepath = project_dir / "data"/"project_data"
 def get_player(first, last):
     return playerid_lookup(last, first)["key_mlbam"].iloc[0]
 
@@ -34,3 +34,7 @@ def get_command(year):
     y =  pd.read_csv(filepath/f'{year}command.csv')
     df = pd.DataFrame(y)
     return(df)
+def get_fangraphs(year):
+    return pd.DataFrame(pd.read_csv(\
+        project_dir/'data'/'fangraphs'/f'fg_pitching_{year}.csv'))
+    
