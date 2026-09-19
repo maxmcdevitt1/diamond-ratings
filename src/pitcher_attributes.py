@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from .woba_weights import WOBA_WEIGHTS
+from . import data_loader as load
 
 
 
@@ -8,9 +9,9 @@ def velocity(season):
     fastballs = ('SI', 'FF', 'FC')
     fb = season[season['pitch_type'].isin(fastballs)]
     fb["category"] = "fastball"
-    fb["Leage_AVG_Velo"] = fb.groupby("category")["release_speed"].transform("mean").round(4)
+    fb["Leage_AVG_Velo"] = fb.groupby("category")["release_speed"].transform("median").round(4)
 
-    fb["avg velo"] = fb.groupby(["pitcher", "category"])["release_speed"].transform("mean").round(4)
+    fb["avg velo"] = fb.groupby(["pitcher", "category"])["release_speed"].transform("median").round(4)
     fb["differential"] = (fb["avg velo"] - fb["Leage_AVG_Velo"]).round(4)
     fb["count"] = fb.groupby("player_name")["avg velo"].transform("count")
     minimum = fb.groupby("player_name")["count"].transform("min")
@@ -40,9 +41,9 @@ def movement(season):
 
     df["induced_magnitude"] = (np.hypot(df["pfx_x"], df["pfx_z"]) * 12).round(4)
 
-    df["mean_movement"] = df.groupby(["pitcher", "pitch_category"])["induced_magnitude"].transform("mean").round(4)
+    df["mean_movement"] = df.groupby(["pitcher", "pitch_category"])["induced_magnitude"].transform("median").round(4)
 
-    df["league_avg_movement"] = df.groupby("pitch_category")["induced_magnitude"].transform("mean").round(4)
+    df["league_avg_movement"] = df.groupby("pitch_category")["induced_magnitude"].transform("median").round(4)
 
     df["count"] = df.groupby(["player_name", "pitch_type"])["induced_magnitude"].transform("count")
     minimum = df.groupby("player_name")["count"].transform("min")
@@ -84,28 +85,34 @@ def create_woba(season):
                  .map(hbp_df.set_index("player_name")["hit_by_pitch"])
                  .fillna(0).
                  astype(int))
+    
     ####    SINGLE
+    
     sdf = df[df["events"] == 'single']
     sdf = sdf.groupby(['player_name', 'events']).size().unstack(fill_value=0).reindex(columns=['single']).reset_index()
     df['1b'] = df['player_name'].map(sdf.set_index('player_name')['single']).fillna(0).astype(int)
 
     ####    DOUBLE
+    
     ddf = df[df["events"] == 'double']
     ddf = ddf.groupby(['player_name', 'events']).size().unstack(fill_value=0).reindex(columns=['double']).reset_index()
     df['2b'] = df['player_name'].map(ddf.set_index('player_name')['double']).fillna(0).astype(int)
 
     ####    TRIPLE
+    
     tdf = df[df["events"] == 'triple']
     tdf = tdf.groupby(['player_name', 'events']).size().unstack(fill_value=0).reindex(columns=['triple']).reset_index()
     df['3b'] = df['player_name'].map(tdf.set_index('player_name')['triple']).fillna(0).astype(int)
 
     ####    HR
+    
     hrdf = df[df["events"] == 'home_run']
     hrdf = hrdf.groupby(['player_name', 'events']).size().unstack(fill_value=0).reindex(columns=['home_run']).reset_index()
     df['hr'] = df['player_name'].map(hrdf.set_index('player_name')['home_run']).fillna(0).astype(int)
 
 
     ####    AB
+    
     ab_events = [
         "single", "double", "triple", "home_run",
         "field_out", "strikeout", "strikeout_double_play",
@@ -117,12 +124,12 @@ def create_woba(season):
     df['ab'] = df['player_name'].map(abdf).fillna(0).astype(int)
 
     ####    SF
+    
     sfdb = df[df['events'].isin(["sac_fly", "sac_fly_double_play"])].groupby('player_name').size()
 
     df["sf"] = (
         df["player_name"].map(sfdb).fillna(0).astype(int)
     )
-
 
     df = df.drop_duplicates(subset=["player_name"])
     df = df[["player_name", "game_date", "hbp", 'bb', 'ibb', '1b', '2b', '3b', 'hr', 'ab', 'sf']]
@@ -151,41 +158,25 @@ def calculate_woba(first, last, year, season):
         (ab + (bb - ibb)+sf+hbp)
     )
 
-
-
     return wOBA
 
 def get_whif(first, last, season):
-    """
-          'hit_into_play',         'swinging_strike',
-                    'foul',                    'ball',
-           'called_strike',                'foul_tip',
-            'blocked_ball',            'hit_by_pitch',
-          'automatic_ball',               'foul_bunt',
-    'swinging_strike_blocked',             'missed_bunt',
-           'bunt_foul_tip',        'automatic_strike',
-                'pitchout',       'swinging_pitchout'
-    """
     df = season.copy()
     
     swings = ('foul_tip', 'hit_into_play', 
               'foul', 'swinging_strike_blocked',
-              'swinging_strike','swinging_pitchout')
+              'swinging_strike','swinging_pitchout', 'foul_tip')
+
     misses = ('swinging_strike_blocked',
-              'swinging_strike','foul_tip','swinging_pitchout')
-    swings = df[df['description'].isin(swings)]
-    misses = df[df['description'].isin(misses)]
-    swings = (swings.groupby('player_name')
-        .size())
-    df['total_swings'] = df["player_name"].map(swings)
-    misses=misses.groupby('player_name').size()
-    df['misses'] = df["player_name"].map(misses)
-    df['whiff'] = ((df['misses']/df['total_swings'])*100).round(4)
-    df=df[df["player_name"]==f'{last}, {first}']
-    df=df.drop_duplicates(subset=['player_name'])
-    whiff=df["whiff"].iloc[0]
+              'swinging_strike','swinging_pitchout')
+
+    df["swings"] = df[df['description'].isin(swings)].groupby('player_name').size()
     
-    return whiff
+    df['misses'] = df[df['description'].isin(misses)].groupby('player_name').size()
+    
+    df['whiff_rate'] = (df['misses'] / df['swings'] * 100)
+
+    return df
 
 def get_control(first, last, season):
     df = season.copy()
@@ -200,3 +191,9 @@ def get_control(first, last, season):
     ]
     a = average['inferred_in'].median()
     return df, a
+
+def get_war(playerid, year):
+    df = load.get_fangraphs(year)
+    df = df[df["xMLBAMID"] == playerid]
+    war = df["WAR"].iloc[0]
+    return war
