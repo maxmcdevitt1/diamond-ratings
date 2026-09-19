@@ -12,14 +12,13 @@
 
 # Let's Rate the Diamond
 
-**Diamond Ratings** is a Python project for turning baseball performance into **player ratings**.
+**Diamond Ratings** is a Python project for taking your favorite player and creating a video game like **player rating**.
 
 The current focus is pitching: fastball velocity, pitch movement, whiff rate, and wOBA allowed, with OpenCommand and FanGraphs data available for the next stages. The long-term goal is to combine player ratings into **team ratings**, then use them to predict games and seasons.
 
-## Project status
 
 > [!NOTE]
-> This project is in development. Individual pitcher metrics are implemented; a complete player rating, hitter ratings, and team predictions are still being built.
+> In development
 
 | Area | Current state |
 |---|---|
@@ -41,53 +40,14 @@ The current focus is pitching: fastball velocity, pitch movement, whiff rate, an
 
 The last two stages are the project direction, described in [objective.txt](objective.txt).
 
-### Install
-
-Clone the repository and create a virtual environment:
-
-```bash
-git clone https://github.com/maxmcdevitt1/diamond-ratings.git
-cd diamond-ratings
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install pandas numpy pybaseball pyarrow
-```
-
-On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1`.
 
 ### Load pitching data
-
-Run this from the repository root:
-
-```bash
-python -c "from src import data_loader; data_loader.get_all_pitchers()"
-```
 
 The loader requests **2021–2026** Statcast data, using March 27 through October 1 for each year. It saves one Parquet file per year in `data/pitching_data/` and skips files already present.
 
 > The first run downloads multiple seasons and can take a while. The fixed date windows may omit games outside those dates, and an existing file is not automatically refreshed as a season progresses.
 
-### Explore a pitcher
-
-After generating the season files, run this in a Python session or notebook from the repository root:
-
-```python
-from src import data_loader, pitcher_attributes, pitcher_rating
-
-season = data_loader.get_season_pitching(2025)
-
-# Percentile score for the current whiff-rate implementation.
-print(pitcher_rating.whiff(season, "Chris", "Sale"))
-
-# Season-weighted wOBA allowed and its percentile score.
-woba = pitcher_attributes.calculate_woba(2025, season)
-print(woba.loc[
-    woba["player_name"].eq("Sale, Chris"),
-    ["player_name", "wOBA", "wOBA_score"],
-])
 ```
-
-`main.py` currently downloads missing season files and initializes Chris Sale's `Player` objects for 2024–2026. It does not yet print or export a finished rating.
 
 ### Pipeline
 
@@ -102,15 +62,12 @@ Velocity · Movement · Whiff · wOBA          │
    │                                      │
    ▼                                      ▼
 Attribute percentiles          Command / WAR integration
-   │                                  (in progress)
    └──────────────────┬───────────────────┘
                       ▼
             Combined player ratings
-                    (planned)
                       │
                       ▼
        Team ratings → Game / season predictions
-                    (planned)
 ```
 
 | File | Role |
@@ -158,15 +115,10 @@ The movement score weights category percentiles **50% breaking**, **30% offspeed
 
 Percentiles describe a player's position within the data being ranked. They are relative to that comparison group and are not a validated forecast of future performance.
 
-The scoring system is still being standardized. Some rating experiments remap a percentile to a **50–100** scale with `50 + percentile / 2`, while other functions return a **0–100** percentile. There is no final combined score yet.
-
-
-See [objective.txt](objective.txt) for the original goals and [todo](todo) for current development notes.
-
 ## Credits
 
 - [pybaseball](https://github.com/jldbc/pybaseball) — Statcast access and player ID lookup.
 - [FanGraphs](https://www.fangraphs.com/) — supporting pitching statistics.
-- [OpenCommand](https://github.com/tomdoyo/open-command) by [tomdoyo](https://github.com/tomdoyo) — command data and inspiration for this README's layout.
+- [OpenCommand](https://github.com/tomdoyo/open-command) by [tomdoyo](https://github.com/tomdoyo) — command data.
 
 OpenCommand's upstream code and data are released under [CC BY-NC-SA 4.0](https://github.com/tomdoyo/open-command/blob/main/LICENSE).
