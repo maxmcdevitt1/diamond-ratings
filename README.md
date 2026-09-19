@@ -23,8 +23,7 @@ The current focus is pitching: fastball velocity, pitch movement, whiff rate, an
 | Area | Current state |
 |---|---|
 | Data loading | Statcast downloads and local Parquet/CSV readers |
-| Pitcher attributes | Velocity, movement, whiff rate, and wOBA calculations |
-| Command & WAR | Source data and initial functions; integration is unfinished |
+| Pitcher attributes | Velocity, movement, WAR, whiff rate, and wOBA calculations |
 | Hitter ratings | Starter modules and batting datasets |
 | Team ratings & predictions | Planned |
 
