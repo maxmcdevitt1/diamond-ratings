@@ -1,3 +1,5 @@
-__pycache__
-.venv
-.gitdata/pitching_data/2021.parquet data/pitching_data/2022.parquet data/pitching_data/2023.parquet data/pitching_data/2024.parquet data/pitching_data/2025.parquet data/pitching_data/2026.parquet
+__pycache__/
+*.pyc
+.venv/
+data/pitching_data/*.parquet
+.vscode/

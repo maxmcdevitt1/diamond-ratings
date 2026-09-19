@@ -54,6 +54,8 @@ class Player():
         velocity = vdf.loc[vdf["player_name"] == self.name,"velo_percentile"].iloc[0].round()
         velocity = 50+(velocity/2)
 
+        return velocity
+
     def movement(self):
         mdf = attr.movement(self.df)
         # Get average break of all pitch categories
@@ -81,13 +83,15 @@ class Player():
             + offspeed * 0.30
             + fastball * 0.20
             ).round()
-        
+        movement_score = 50+(movement_score/2)
+
         return movement_score
 
     def control(self):
         control = attr.get_control(data_loader.get_command(self.year))
         control = control[control["pitcher"] == f'{self.first} {self.last}']
-
+        return control
+    
     def war(self):
         return attr.get_war(self.player_id, self.year)
 
@@ -95,6 +99,13 @@ class Player():
         woba = attr.calculate_woba(self.year, self.df)
         player = woba[woba['player_name'] == self.name]['wOBA_score'].iloc[0]
         return player
+
+    def get_whiff(self):
+        whiff = attr.get_whif(self.df)
+        whiff['score'] = whiff['whiff_rate'].rank(pct=True)
+        score =  (whiff[whiff['player_name'] == self.name]['score']).iloc[0]
+        score = (score * 100).round(4)
+        return score
 
 
 
@@ -125,7 +136,6 @@ def get_player(first, last, year):
 
     # Takes the percentile movement_score and creates a 50-100 final movement_score like video game ratings.
     #player_score = 50+(player_score/2)
-    movement_score = 50+(movement_score/2)
 
     print(year)
     print("Velocity: ", velocity)

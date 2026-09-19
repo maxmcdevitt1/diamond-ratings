@@ -73,10 +73,9 @@ Attribute percentiles          Command / WAR integration
 |---|---|
 | [src/data_loader.py](src/data_loader.py) | Download Statcast data, look up player IDs, and read local datasets |
 | [src/pitcher_attributes.py](src/pitcher_attributes.py) | Calculate pitcher attributes and supporting metrics |
-| [src/pitcher_rating.py](src/pitcher_rating.py) | Player wrapper, percentile scores, and rating experiments |
+| [src/pitcher_rating.py](src/pitcher_rating.py) | Player wrapper, percentile scores, and rating |
 | [src/woba_weights.py](src/woba_weights.py) | Season-specific wOBA weights |
 | [src/batter_attributes.py](src/batter_attributes.py) / [src/batter_rating.py](src/batter_rating.py) | Hitter rating scaffolding |
-| [lab.ipynb](lab.ipynb) | Exploratory notebook |
 
 ## Data
 

@@ -202,6 +202,6 @@ def get_control(first, last, season):
 def get_war(playerid, year):
     df = load.get_fangraphs(year)
     df = df[df["xMLBAMID"] == playerid]
-    war = df["WAR"].iloc[0]
+
     war_score = (df[df['WAR']].rank(pct=True)*100).round(3)
     return war_score
