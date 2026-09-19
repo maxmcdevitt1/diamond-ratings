@@ -47,7 +47,7 @@ The loader requests **2021–2026** Statcast data, using March 27 through Octobe
 
 > The first run downloads multiple seasons and can take a while. The fixed date windows may omit games outside those dates, and an existing file is not automatically refreshed as a season progresses.
 
-```
+
 
 ### Pipeline
 
