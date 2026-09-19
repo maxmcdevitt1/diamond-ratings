@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-6E7681?style=for-the-badge&logo=python&logoColor=white)](#install)
 [![GitHub](https://img.shields.io/badge/maxmcdevitt1%2Fdiamond--ratings-00852E?style=for-the-badge&labelColor=24292F)](https://github.com/maxmcdevitt1/diamond-ratings)
 
-[How it Works](#how-it-works) · [Data](#data) · [Topics](#topics) · [Roadmap](#roadmap) · [Credits](#credits)
+[How it Works](#how-it-works) · [Data](#data)· [Credits](#credits)
 
 </div>
 
@@ -160,15 +160,6 @@ Percentiles describe a player's position within the data being ranked. They are 
 
 The scoring system is still being standardized. Some rating experiments remap a percentile to a **50–100** scale with `50 + percentile / 2`, while other functions return a **0–100** percentile. There is no final combined score yet.
 
-## Roadmap
-
-- [ ] Finish command and WAR integration and standardize attribute scores.
-- [ ] Combine pitcher attributes with past performance into a single rating.
-- [ ] Weight the last two seasons, with more emphasis on the most recent.
-- [ ] Build hitter ratings from contact, power, and discipline.
-- [ ] Account for player availability and starting versus bench roles.
-- [ ] Combine player ratings into team ratings, including the starting rotation.
-- [ ] Predict individual games and season outcomes.
 
 See [objective.txt](objective.txt) for the original goals and [todo](todo) for current development notes.
 
