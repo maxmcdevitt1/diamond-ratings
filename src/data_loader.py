@@ -1,5 +1,4 @@
 from pybaseball import  playerid_lookup, statcast
-import re
 import pandas as pd
 from pybaseball import cache
 from pathlib import Path
@@ -20,10 +19,13 @@ def get_season_hitting(year):
 
 
 def get_all_pitchers():
-    for year in range(2018, 2027):
-        all_pitchers = statcast(start_dt=f'{year}-04-01',end_dt=f'{year}-10-01')
-        df = pd.DataFrame(all_pitchers)
-        df.to_parquet(filepath/f'{year}.parquet')
+    for year in range(2021, 2027):
+        if (filepath/'pitching_data'/f'{year}.parquet').exists():
+            continue
+        else:
+            all_pitchers = statcast(start_dt=f'{year}-03-27',end_dt=f'{year}-10-01')
+            df = pd.DataFrame(all_pitchers)
+            df.to_parquet(filepath/'pitching_data'/f'{year}.parquet')
         
 def get_season_pitching(year):
     return pd.read_parquet(filepath/"pitching_data"/f'{year}.parquet')

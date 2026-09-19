@@ -57,6 +57,12 @@ def movement(season):
 def create_woba(season):
     df = season
 
+    count = df.groupby('player_name').size()
+    df["total_pitches"] = df["player_name"].map(count)
+
+    df = df[df['total_pitches'] > 200]
+
+
     #####   BB AND IBB
     bb = df[df['events'].isin(["intent_walk", "walk"])]
     bb[['events', 'player_name']]
@@ -135,65 +141,67 @@ def create_woba(season):
     df = df[["player_name", "game_date", "hbp", 'bb', 'ibb', '1b', '2b', '3b', 'hr', 'ab', 'sf']]
     return df
 
-def calculate_woba(first, last, year, season):
+def calculate_woba(year, season):
     #wOBA = ((0.697 * non intentional BB) + (0.727 * HBP) + (0.855 * 1B) + (1.248 * 2B) + (1.575 * 3B) + (2.014 * HR)/ AB + BB - IBB + SF + HBP)
 
     df = create_woba(season).copy()
-    df=df[df['player_name']==f"{last}, {first}"]
-    hbp = df['hbp'].iloc[0]
-    bb = df['bb'].iloc[0]
-    ibb = df['ibb'].iloc[0]
-    single = df['1b'].iloc[0]
-    double = df['2b'].iloc[0]
-    triple = df['3b'].iloc[0]
-    hr = df['hr'].iloc[0]
-    ab = df['ab'].iloc[0]
-    sf = df['sf'].iloc[0]
+    #df=df[df['player_name'] == name]
+    hbp = df['hbp']
+    bb = df['bb']
+    ibb = df['ibb']
+    single = df['1b']
+    double = df['2b']
+    triple = df['3b']
+    hr = df['hr']
+    ab = df['ab']
+    sf = df['sf']
     
     weights = WOBA_WEIGHTS[year]
 
-    wOBA = (
+    df['wOBA'] = (
         ((weights['nibb']*(bb-ibb)) + (weights['hbp']*hbp) + (weights['1b']*single) +
         (weights['2b']*double) + (weights['3b']*triple) + (weights['hr']*hr)) /
         (ab + (bb - ibb)+sf+hbp)
     )
+    df['wOBA_score'] = (df['wOBA'].rank(pct=True, ascending=False)*100)
 
-    return wOBA
+    return df
 
-def get_whif(first, last, season):
+def get_whif(season):
     df = season.copy()
     
     swings = ('foul_tip', 'hit_into_play', 
               'foul', 'swinging_strike_blocked',
-              'swinging_strike','swinging_pitchout', 'foul_tip')
+              'swinging_strike', 'bunt_foul_tip',
+              'foul_bunt','missed_bunt')
 
     misses = ('swinging_strike_blocked',
-              'swinging_strike','swinging_pitchout')
+              'swinging_strike','missed_bunt', 'foul_tip')
 
-    df["swings"] = df[df['description'].isin(swings)].groupby('player_name').size()
-    
-    df['misses'] = df[df['description'].isin(misses)].groupby('player_name').size()
-    
-    df['whiff_rate'] = (df['misses'] / df['swings'] * 100)
+    swing = df[df['description'].isin(swings)].groupby('player_name').size()
+    miss = df[df['description'].isin(misses)].groupby('player_name').size()
 
-    return df
+    df['swings'] = df['player_name'].map(swing)
+    df['misses'] = df['player_name'].map(miss)
+
+    df['whiff_rate'] = (df['misses'] / df['swings'])
+    whiff = df[['player_name', 'whiff_rate']].drop_duplicates().dropna()
+
+    return whiff
 
 def get_control(first, last, season):
     df = season.copy()
-    df = df[df["pitcher"] == f'{first} {last}']
-    df = df[df['pitch_type'] == 'ALL']
-    df = df['inferred_in'].iloc[0]
+    df = df[(df["pitch_type"] == "ALL") &(df["n"] >= 200)].copy()
 
-    average = season.copy()
-    average = season[
-        (season["pitch_type"] == "ALL") &
-        (season["n"] >= 100)
-    ]
-    a = average['inferred_in'].median()
-    return df, a
+    df['score'] = (df['inferred_in'].rank(pct=True)*100).round(3)
+
+    df = df[['pitcher', 'score', 'n']]
+
+    return df
 
 def get_war(playerid, year):
     df = load.get_fangraphs(year)
     df = df[df["xMLBAMID"] == playerid]
     war = df["WAR"].iloc[0]
-    return war
+    war_score = (df[df['WAR']].rank(pct=True)*100).round(3)
+    return war_score
