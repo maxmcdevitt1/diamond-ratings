@@ -90,9 +90,13 @@ class Player():
     def control(self):
         control = attr.get_control(data_loader.get_command(self.year))
         control = control[control["pitcher"] == f'{self.first} {self.last}']
+        # Returns percentile
+
         return control
     
     def war(self):
+        # Returns percentile
+        
         return attr.get_war(self.player_id, self.year)
 
     def woba(self):
@@ -106,55 +110,13 @@ class Player():
         score =  (whiff[whiff['player_name'] == self.name]['score']).iloc[0]
         score = (score * 100).round(4)
         return score
-
-
-
-def get_player(first, last, year):
     
-    
-    
-    # whiff
-
-
-    
-
-    wOBA = attr.calculate_woba(first, last, year, season)
-    
-
-    wOBA_diff = (average_woba[year] - wOBA).round(4)
-    
-    #TODO: STANDARDIZE THESE FORMULAS
-    #woba_score = np.clip(50 + 500 * wOBA_diff, 0, 100)
-    
-    
-    #TODO: Get final score from war.
-    
-    war = attr.get_war(player_id, year)
-    
-    #player_score = round(whiff_score * 0.50 + woba_score * 0.50, 1)
-
-
-    # Takes the percentile movement_score and creates a 50-100 final movement_score like video game ratings.
-    #player_score = 50+(player_score/2)
-
-    print(year)
-    print("Velocity: ", velocity)
-    print("Movement: ", movement_score)
-    print("Whiff : ", whiff)
-    print("Avg Whiff : ", average_whiff_rate)
-    #print("wOBA : ", round(woba_score, 1))
-    #print("Player : ", player_score)
-    print("Command : ",control)
-    print("AVG Command: ", control_avg)
-    print("WAR: ", war)
-
-def whiff(df,first, last):
-
-    whiff_dataframe = attr.get_whif(df)
-    
-
-    whiff_dataframe["whiff_score"] = whiff_dataframe['whiff_rate'].rank(pct=True)*100
-
-    whiff = ((whiff_dataframe[whiff_dataframe['player_name'].eq(f'{last}, {first}')]
-             ['whiff_score']).iloc[0]).round(4)
-    return whiff
+    def ratings(self):
+        return {
+            "movement": self.movement(),
+            "velocity": self.velocity(),
+            "control": self.control(),
+            "war": self.war(),
+            "woba": self.woba(),
+            "whiff": self.get_whiff(),
+        }
