@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="artifacts/banner.svg">
+<img src="banner.svg">
 
 [![Status](https://img.shields.io/badge/status-in%20development-6E7681?style=for-the-badge&labelColor=24292F)](#project-status)
 [![Python](https://img.shields.io/badge/python-6E7681?style=for-the-badge&logo=python&logoColor=white)](#install)
