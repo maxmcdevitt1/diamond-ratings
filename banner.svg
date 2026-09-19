@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="480" viewBox="0 0 1600 480" role="img" aria-labelledby="title description">
+<title id="title">Diamond Ratings</title>
+<desc id="description">Baseball analytics, built from the pitch up. Cream lettering on a midnight green baseball field with a large illustrated baseball, red stitching, and mint diamond details.</desc>
+<defs>
+  <linearGradient id="background" x2="1" y2=".6"><stop stop-color="#0b1721"/><stop offset="1" stop-color="#143c36"/></linearGradient>
+  <radialGradient id="leather" cx=".33" cy=".25" r=".85"><stop stop-color="#fffef2"/><stop offset=".65" stop-color="#f1edda"/><stop offset="1" stop-color="#d3d7be"/></radialGradient>
+  <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#97c7ad" stroke-opacity=".055"/></pattern>
+  <clipPath id="bounds"><rect width="1600" height="480" rx="20"/></clipPath>
+  <clipPath id="ball"><circle r="184"/></clipPath>
+</defs>
+<g clip-path="url(#bounds)">
+  <rect width="1600" height="480" fill="url(#background)"/>
+  <rect width="1600" height="480" fill="url(#grid)"/>
+  <!-- Outfield geometry gives the background the shape of a ballpark. -->
+  <g fill="none" stroke="#91cda5" stroke-width="2">
+    <path d="M1150 598 721 169 Q1150 -250 1579 169Z" stroke-opacity=".15"/>
+    <path d="M1150 598 787 235 Q1150 -126 1513 235" stroke-opacity=".13"/>
+    <path d="M1150 598 851 299 Q1150 6 1449 299" stroke-opacity=".10"/>
+    <path d="m1150 450-146-146 146-146 146 146Z" stroke-opacity=".16"/>
+  </g>
+  <path d="M0 471H1600" stroke="#9cdfae" stroke-width="9"/>
+  <!-- Small home plate mark. -->
+  <path d="M86 62H118V85L102 97 86 85Z" fill="#a4e5b5"/>
+  <text x="139" y="86" fill="#a4e5b5" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="5">BASEBALL ANALYTICS</text>
+  <text x="81" y="211" fill="#f8f4e5" font-family="Arial, Helvetica, sans-serif" font-size="110" font-weight="800" letter-spacing="-4">DIAMOND</text>
+  <text x="81" y="321" fill="#f8f4e5" font-family="Arial, Helvetica, sans-serif" font-size="110" font-weight="800" letter-spacing="-4">RATINGS</text>
+  <text x="87" y="372" fill="#b6cabe" font-family="Arial, Helvetica, sans-serif" font-size="28">Built from the pitch up.</text>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" letter-spacing="3" fill="#a4e5b5">
+    <text x="87" y="430">PITCHING</text><circle cx="229" cy="424" r="2.5"/>
+    <text x="251" y="430">PERFORMANCE</text><circle cx="465" cy="424" r="2.5"/>
+    <text x="487" y="430">PLAYER RATINGS</text>
+  </g>
+  <!-- Decorative pitch trail; no statistical data is implied. -->
+  <path d="M786 350C902 343 949 211 1087 220" fill="none" stroke="#a4e5b5" stroke-width="2" stroke-dasharray="6 10" stroke-opacity=".55"/>
+  <circle cx="786" cy="350" r="6" fill="#a4e5b5"/>
+  <g transform="translate(1280 235) rotate(22)">
+    <circle cx="12" cy="18" r="190" fill="#071c1c" opacity=".36"/>
+    <circle r="204" fill="none" stroke="#a4e5b5" stroke-opacity=".23"/>
+    <circle r="215" fill="none" stroke="#a4e5b5" stroke-opacity=".10" stroke-dasharray="3 12"/>
+    <circle r="184" fill="url(#leather)"/>
+    <g clip-path="url(#ball)">
+      <g fill="none" stroke="#b44040" stroke-width="2" opacity=".6">
+        <path d="M-112-160C-15-65-15 65-112 160"/>
+        <path d="M112-160C15-65 15 65 112 160"/>
+      </g>
+      <g fill="none" stroke="#ba4545" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M-109.60 -143.25 L-99.49 -146.97 L-94.74 -156.63"/>
+<path d="M-97.20 -128.90 L-86.85 -131.87 L-81.41 -141.16"/>
+<path d="M-86.24 -114.15 L-75.69 -116.34 L-69.56 -125.19"/>
+<path d="M-76.71 -99.07 L-66.03 -100.42 L-59.22 -108.77"/>
+<path d="M-68.60 -83.69 L-57.84 -84.18 L-50.39 -91.96"/>
+<path d="M-61.91 -68.07 L-51.15 -67.67 L-43.08 -74.81"/>
+<path d="M-56.64 -52.24 L-45.94 -50.94 L-37.30 -57.37"/>
+<path d="M-52.77 -36.26 L-42.23 -34.05 L-33.07 -39.72"/>
+<path d="M-50.30 -20.17 L-39.99 -17.05 L-30.38 -21.91"/>
+<path d="M-49.25 -4.00 L-39.25 -0.00 L-29.25 -4.00"/>
+<path d="M-49.61 12.20 L-39.99 17.05 L-29.68 13.94"/>
+<path d="M-51.38 28.38 L-42.23 34.05 L-31.68 31.84"/>
+<path d="M-54.58 44.51 L-45.94 50.94 L-35.25 49.64"/>
+<path d="M-59.22 60.54 L-51.15 67.67 L-40.39 67.27"/>
+<path d="M-65.30 76.41 L-57.84 84.18 L-47.08 84.67"/>
+<path d="M-72.83 92.07 L-66.03 100.42 L-55.34 101.78"/>
+<path d="M-81.83 107.48 L-75.69 116.34 L-65.15 118.52"/>
+<path d="M-92.30 122.58 L-86.85 131.87 L-76.50 134.84"/>
+<path d="M-104.25 137.30 L-99.49 146.97 L-89.39 150.69"/>
+<path d="M94.74 -156.63 L99.49 -146.97 L109.60 -143.25"/>
+<path d="M81.41 -141.16 L86.85 -131.87 L97.20 -128.90"/>
+<path d="M69.56 -125.19 L75.69 -116.34 L86.24 -114.15"/>
+<path d="M59.22 -108.77 L66.03 -100.42 L76.71 -99.07"/>
+<path d="M50.39 -91.96 L57.84 -84.18 L68.60 -83.69"/>
+<path d="M43.08 -74.81 L51.15 -67.67 L61.91 -68.07"/>
+<path d="M37.30 -57.37 L45.94 -50.94 L56.64 -52.24"/>
+<path d="M33.07 -39.72 L42.23 -34.05 L52.77 -36.26"/>
+<path d="M30.38 -21.91 L39.99 -17.05 L50.30 -20.17"/>
+<path d="M29.25 -4.00 L39.25 -0.00 L49.25 -4.00"/>
+<path d="M29.68 13.94 L39.99 17.05 L49.61 12.20"/>
+<path d="M31.68 31.84 L42.23 34.05 L51.38 28.38"/>
+<path d="M35.25 49.64 L45.94 50.94 L54.58 44.51"/>
+<path d="M40.39 67.27 L51.15 67.67 L59.22 60.54"/>
+<path d="M47.08 84.67 L57.84 84.18 L65.30 76.41"/>
+<path d="M55.34 101.78 L66.03 100.42 L72.83 92.07"/>
+<path d="M65.15 118.52 L75.69 116.34 L81.83 107.48"/>
+<path d="M76.50 134.84 L86.85 131.87 L92.30 122.58"/>
+<path d="M89.39 150.69 L99.49 146.97 L104.25 137.30"/></g>
+      <path d="M-25-22H25V12L0 33-25 12Z" fill="none" stroke="#748d76" stroke-width="2" opacity=".38"/>
+    </g>
+  </g>
+  <path d="m1498 410 8-8 8 8-8 8Z" fill="#a4e5b5"/>
+</g>
+</svg>
