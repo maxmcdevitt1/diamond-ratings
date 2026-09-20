@@ -21,7 +21,14 @@ from mean BB%.
 
                                             CREATING HITTER METRICS
 - Create raw attributes based on contact power and discipline. 
-- Power - ISO
+- Power -
+ISO?
+Barrel%
+EV50
+
+Deserved Barrel/BBE = (–0.132 * EV) + (0.00186 * LA) + (0.00082 * EV2) + (0.000027 * LA2) + (0.00749 for 2017) + (–0.00185 for 2018) + 5.309
+
+
 - Contact - Contact% (Contact Percentage): Contact made divided by swings. *Fangraphs
 
 
