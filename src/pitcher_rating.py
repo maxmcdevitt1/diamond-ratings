@@ -88,31 +88,32 @@ class Player():
         return movement_score
 
     def control(self):
-        control = attr.get_control(data_loader.get_command(self.year))
+        control = attr.get_control(self.first, self.last,data_loader.get_command(self.year))
         control = control[control["pitcher"] == f'{self.first} {self.last}']
         # Returns percentile
 
-        return control
+        return 50 + (control['score'].iloc[0]/2)
     
     def war(self):
         # Returns percentile
         
-        return attr.get_war(self.player_id, self.year)
+        return 50+( attr.get_war(self.player_id, self.year)/2 )
 
     def woba(self):
         woba = attr.calculate_woba(self.year, self.df)
         player = woba[woba['player_name'] == self.name]['wOBA_score'].iloc[0]
-        return player
+        return 50 + (player/2)
 
     def get_whiff(self):
         whiff = attr.get_whif(self.df)
         whiff['score'] = whiff['whiff_rate'].rank(pct=True)
         score =  (whiff[whiff['player_name'] == self.name]['score']).iloc[0]
         score = (score * 100).round(4)
-        return score
+        return 50 + (score/2)
     
     def ratings(self):
         return {
+            "Year": self.year,
             "movement": self.movement(),
             "velocity": self.velocity(),
             "control": self.control(),

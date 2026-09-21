@@ -36,8 +36,7 @@ def get_command(year):
     return(df)
 
 def get_fangraphs(year):
-    return pd.DataFrame(pd.read_csv(\
-        project_dir/'data'/'fangraphs'/f'fg_pitching_{year}.csv'))
+    return pd.DataFrame(pd.read_csv(filepath/'fangraphs'/f'fg_pitching_{year}.csv'))
 
 def create_df(year):
     command = get_command(year)

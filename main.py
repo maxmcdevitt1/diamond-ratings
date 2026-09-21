@@ -4,11 +4,17 @@ def main():
     data_loader.get_all_pitchers()
     first = input("Enter player's first name: ")
     last = input("Enter player's last name: ")
-    name = f'{last}, {first}'
+    #name = f'{last}, {first}'
+
     
     for i in range(2024, 2027):
-        player = pitcher.Player(name, data_loader.get_season_pitching(i), i)
+        season = data_loader.get_season_pitching(i)
+        if not season["player_name"].eq(f"{last}, {first}").any():
+            print(f"{i}: No data for {first} {last}")
+            continue
+        player = pitcher.Player(first, last,season , i)
         scores = player.ratings()
+        print(scores)
         
         
         

@@ -191,17 +191,19 @@ def get_whif(season):
 
 def get_control(first, last, season):
     df = season.copy()
-    df = df[(df["pitch_type"] == "ALL") &(df["n"] >= 200)].copy()
+    df = df[(df["pitch_type"] == "ALL")].copy()
 
-    df['score'] = (df['inferred_in'].rank(pct=True)*100).round(3)
+    df['score'] = (df['inferred_in'].rank(pct=True, ascending=False)*100).round(3)
 
     df = df[['pitcher', 'score', 'n']]
 
     return df
 
 def get_war(playerid, year):
-    df = load.get_fangraphs(year)
-    df = df[df["xMLBAMID"] == playerid]
+    df = load.get_fangraphs(year)[["xMLBAMID", "WAR"]].copy()
 
-    war_score = (df[df['WAR']].rank(pct=True)*100).round(3)
-    return war_score
+    df['percentile'] = (df['WAR'].rank(pct=True)*100).round(3)
+    war = df.loc[df["xMLBAMID"] == playerid, 'percentile'].iloc[0]
+
+    
+    return war
