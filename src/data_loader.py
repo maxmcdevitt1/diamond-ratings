@@ -8,9 +8,12 @@ cache.enable()
 project_dir = Path(__file__).resolve().parent.parent
 filepath = project_dir / "data"
 
+def get_batting():
+    data = pd.read_csv(filepath/'batting_data'/'stats.csv')
+    return pd.DataFrame(data)
 
 def get_player(first, last):
-    return playerid_lookup(last, first, fuzzy=True)["key_mlbam"].iloc[0]
+    return playerid_lookup(last, first)["key_mlbam"].iloc[0]
 
 
 def get_season_hitting(year):
@@ -37,7 +40,3 @@ def get_command(year):
 
 def get_fangraphs(year):
     return pd.DataFrame(pd.read_csv(filepath/'fangraphs'/f'fg_pitching_{year}.csv'))
-
-def create_df(year):
-    command = get_command(year)
-    fangraphs = get_fangraphs(year)

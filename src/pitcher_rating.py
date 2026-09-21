@@ -52,64 +52,90 @@ class Player():
         vdf = attr.velocity(self.df)
         vdf["velo_percentile"] = vdf["differential"].rank(pct=True) * 100
         velocity = vdf.loc[vdf["player_name"] == self.name,"velo_percentile"].iloc[0].round()
-        velocity = 50+(velocity/2)
 
-        return velocity
+        return float(velocity)
 
     def movement(self):
         mdf = attr.movement(self.df)
         # Get average break of all pitch categories
+        # Count measured pitches per player and category.
 
-        movement = mdf[[
-            "player_name","pitch_category",
-            "mean_movement","league_avg_movement",
-            "differential"]].drop_duplicates(subset=['player_name', 'pitch_category'])
+        mdf["pitch_count"] = (
+            mdf.groupby(["player_name", "pitch_category"])
+            ["induced_magnitude"]
+            .transform("count")
+        )
+
+        movement = (
+            mdf.loc[
+                mdf["pitch_count"] > 50,
+                ["player_name", "pitch_category", "induced_magnitude"],
+            ]
+            .drop_duplicates(["player_name", "pitch_category"])
+            .copy()
+        )
 
         movement['movement_percentile'] = (
-            movement.groupby('pitch_category')['differential'].rank(pct=True) * 100)
+            movement.groupby('pitch_category')['induced_magnitude'].rank(pct=True) * 100)
 
         movement = movement[movement['player_name'] == (self.name)]
         # Get differential of movement from league average movement
+        
+        weights = {
+            "breaking": 0.50,
+            "offspeed": 0.30,
+            "fastball": 0.20,
+        }
 
-        breaking = movement.loc[movement["pitch_category"].eq("breaking"),
-                "movement_percentile"].iloc[0]
-        offspeed = movement.loc[movement["pitch_category"].eq("offspeed"),
-                "movement_percentile"].iloc[0]
-        fastball = movement.loc[movement["pitch_category"].eq("fastball"),
-                "movement_percentile"].iloc[0]
-            
-        movement_score = (
-            breaking * 0.50
-            + offspeed * 0.30
-            + fastball * 0.20
-            ).round()
-        movement_score = 50+(movement_score/2)
+        weighted_total = 0.0
+        total_weight = 0.0
 
-        return movement_score
+        for category, weight in weights.items():
+            scores = movement.loc[
+                movement["pitch_category"] == category,
+                "movement_percentile",
+            ].dropna()
+
+            if not scores.empty:
+                weighted_total += float(scores.iloc[0]) * weight
+                total_weight += weight
+
+        if total_weight == 0:
+            return None
+
+        movement_score = round(weighted_total / total_weight)
+        return float(movement_score)
 
     def control(self):
         control = attr.get_control(self.first, self.last,data_loader.get_command(self.year))
+
+        
         control = control[control["pitcher"] == f'{self.first} {self.last}']
+        if control.empty:
+            return None
         # Returns percentile
 
-        return 50 + (control['score'].iloc[0]/2)
+        return float(control['score'].iloc[0])
     
     def war(self):
         # Returns percentile
         
-        return 50+( attr.get_war(self.player_id, self.year)/2 )
+        return float(attr.get_war(self.player_id, self.year))
 
     def woba(self):
         woba = attr.calculate_woba(self.year, self.df)
-        player = woba[woba['player_name'] == self.name]['wOBA_score'].iloc[0]
-        return 50 + (player/2)
+        scores = woba.loc[woba['pitcher'] == self.player_id, 'wOBA_score'].dropna()
+
+        if scores.empty:
+            return None
+        return float(scores.iloc[0].round(2))
 
     def get_whiff(self):
         whiff = attr.get_whif(self.df)
         whiff['score'] = whiff['whiff_rate'].rank(pct=True)
-        score =  (whiff[whiff['player_name'] == self.name]['score']).iloc[0]
+        score =  (whiff[whiff['pitcher'] == self.player_id]['score']).iloc[0]
         score = (score * 100).round(4)
-        return 50 + (score/2)
+        return float(score)
     
     def ratings(self):
         return {
