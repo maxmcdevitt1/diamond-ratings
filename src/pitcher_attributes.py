@@ -190,7 +190,9 @@ def get_whif(season):
 
     return whiff
 
-def get_control(first, last, season):
+def get_control(season):
+    if season is None:
+        return
     df = season.copy()
     df = df[(df["pitch_type"] == "ALL")].copy()
     df = df.loc[df['n'] > 200]

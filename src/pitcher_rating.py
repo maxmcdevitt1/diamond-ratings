@@ -32,7 +32,7 @@ average_woba = {
 
 class Player():
 
-    def __init__(self, first, last, dataframe, year):
+    def __init__(self, first, last, year):
         self.name = f'{last}, {first}'
         self.player_id = data_loader.get_player(first, last)
         self.year = year
@@ -40,7 +40,7 @@ class Player():
         self.last = last
 
         try:
-                self.df = data_loader.get_season_pitching(year)
+            self.df = data_loader.get_season_pitching(year)
         except FileNotFoundError:
             print(f"{year}: No pitching data file")
             return
@@ -107,9 +107,9 @@ class Player():
         return float(movement_score)
 
     def control(self):
-        control = attr.get_control(self.first, self.last,data_loader.get_command(self.year))
-
-        
+        control = attr.get_control(data_loader.get_command(self.year))
+        if control is None:
+            return
         control = control[control["pitcher"] == f'{self.first} {self.last}']
         if control.empty:
             return None
