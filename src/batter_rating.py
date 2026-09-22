@@ -30,6 +30,7 @@ class Player():
 
     def contact(self):
         df = attr.get_contact(self.year)
+
         df = df.loc[df['player_id'] == self.id]
 
         return float(df['contact_score'].iloc[0]*100)

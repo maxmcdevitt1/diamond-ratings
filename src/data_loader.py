@@ -2,8 +2,13 @@ from pybaseball import  playerid_lookup, statcast
 import pandas as pd
 from pybaseball import cache
 from pathlib import Path
+from mlbstatsapi import Mlb
+
 
 cache.enable()
+
+players = Mlb().get_people()
+
 
 project_dir = Path(__file__).resolve().parent.parent
 filepath = project_dir / "data"
