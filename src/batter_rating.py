@@ -1,8 +1,7 @@
 import pandas as pd
 from . import batter_attributes as attr
-import numpy as np
-from . import data_loader
 from . import batter_attributes as attr
+from . import data_loader
 
 
 class Player():
@@ -15,9 +14,14 @@ class Player():
         self.last = last
         self.id = id
 
+
     def power(self):
         df = attr.get_power(self.year)
+
+        
         df = df.loc[df['player_id'] == self.id]
+        if df.empty:
+            return None
         iso = df['iso_score'].iloc[0]
 
         barrel_pct = df['barrel%_score'].iloc[0]
@@ -25,6 +29,7 @@ class Player():
         ev50 = df['ev50_score'].iloc[0]
 
         score = (iso + barrel_pct + ev50)/3
+        
 
         return float((score*100).round())
 
@@ -32,5 +37,30 @@ class Player():
         df = attr.get_contact(self.year)
 
         df = df.loc[df['player_id'] == self.id]
-
+        if df.empty:
+            return None
+        
         return float(df['contact_score'].iloc[0]*100)
+
+    def war(self):
+        
+        df = attr.get_war()
+
+        df = df.loc[
+            (df["mlb_ID"] == self.id)
+            & (df["year_ID"] == self.year)
+        ]
+        if df.empty:
+            return None
+        return float(((df['war_score'].iloc[0])*100).round(2))
+
+    def ratings(self):
+        data = {
+            "year":self.year,
+            "player_name":self.name,
+            "batter":self.id,
+            "Power": self.power(),
+            "Contact": self.contact(),
+            'WAR': self.war()
+                }
+        return pd.DataFrame([data])

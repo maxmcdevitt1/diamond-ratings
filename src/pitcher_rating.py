@@ -31,22 +31,25 @@ average_woba = {
 }
 
 class Player():
-
-    def __init__(self, first, last, year):
-        self.name = f'{last}, {first}'
-        self.player_id = data_loader.get_player(first, last)
+    def __init__(self, first, last, year, season=None, player_id=None):
+        self.name = f"{last}, {first}"
+        self.player_id = (
+            data_loader.get_player(first, last)
+            if player_id is None
+            else player_id
+        )
         self.year = year
         self.first = first
         self.last = last
 
-        try:
-            self.df = data_loader.get_season_pitching(year)
-        except FileNotFoundError:
-            print(f"{year}: No pitching data file")
-            return
-        if self.df.empty or not self.df["player_name"].eq(self.name).any():
-            print(f"{year}: No data for {first} {last}")
-            return
+        self.df = (
+            data_loader.get_season_pitching(year)
+            if season is None
+            else season
+        )
+
+        if self.df.empty or not self.df["pitcher"].eq(self.player_id).any():
+           raise ValueError(f"{year}: No data for {first} {last}")
 
     def velocity(self):
         vdf = attr.velocity(self.df)
@@ -118,9 +121,9 @@ class Player():
         return float(control['score'].iloc[0])
     
     def war(self):
-        # Returns percentile
         
-        return float(attr.get_war(self.player_id, self.year))
+        df = attr.get_war(self.year)
+        return (df.loc[df["xMLBAMID"] == self.player_id, 'percentile'].iloc[0]).round(2)
 
     def woba(self):
         woba = attr.calculate_woba(self.year, self.df)
@@ -138,8 +141,10 @@ class Player():
         return float(score)
     
     def ratings(self):
-        return {
-            "Year": self.year,
+        data = {
+            "year": self.year,
+            "player_name":self.name,
+            "pitcher":self.player_id,
             "movement": self.movement(),
             "velocity": self.velocity(),
             "control": self.control(),
@@ -147,3 +152,4 @@ class Player():
             "woba": self.woba(),
             "whiff": self.get_whiff(),
         }
+        return pd.DataFrame([data])

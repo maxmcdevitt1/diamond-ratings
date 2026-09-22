@@ -39,3 +39,15 @@ def get_contact(year):
              'batting_avg', 'bat_control_score', 'hit_score', 'hit_measure']]
 
     return df
+
+
+def get_war():
+    df = data_loader.get_batting_war().copy()
+
+    df["year_ID"] = pd.to_numeric(df["year_ID"], errors="coerce")
+    df["WAR"] = pd.to_numeric(df["WAR"], errors="coerce")
+
+    df = df.loc[df["year_ID"] > 2016].copy()
+    df["war_score"] = df.groupby("year_ID")["WAR"].rank(pct=True)
+
+    return df

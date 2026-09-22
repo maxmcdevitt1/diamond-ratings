@@ -57,7 +57,7 @@ def movement(season):
 
 
 def create_woba(season):
-    df = season
+    df = season[["pitcher", "events", "game_date"]].copy()
 
     count = df.groupby('pitcher').size()
     df["total_pitches"] = df["pitcher"].map(count)
@@ -203,11 +203,11 @@ def get_control(season):
 
     return df
 
-def get_war(playerid, year):
+def get_war(year):
     df = load.get_fangraphs(year)[["xMLBAMID", "WAR"]].copy()
 
     df['percentile'] = (df['WAR'].rank(pct=True)*100).round(3)
-    war = df.loc[df["xMLBAMID"] == playerid, 'percentile'].iloc[0]
+    #war = df.loc[df["xMLBAMID"] == playerid, 'percentile'].iloc[0]
 
     
-    return war
+    return df

@@ -7,7 +7,7 @@ from mlbstatsapi import Mlb
 
 cache.enable()
 
-players = Mlb().get_people()
+#players = Mlb().get_people()
 
 
 project_dir = Path(__file__).resolve().parent.parent
@@ -16,6 +16,18 @@ filepath = project_dir / "data"
 def get_batting():
     data = pd.read_csv(filepath/'batting_data'/'stats.csv', encoding="utf-8-sig")
     return pd.DataFrame(data)
+
+def get_batting_war():
+    data = pd.read_csv(filepath/'batting_data'/'2026war.csv', encoding="utf-8-sig")
+    return pd.DataFrame(data)
+
+
+
+    
+def get_batting_year(year):
+    data = pd.read_csv(filepath/'batting_data'/f'{year}_batting.csv', encoding="utf-8-sig")
+    return pd.DataFrame(data)
+
 
 def get_player(first, last):
     return playerid_lookup(last, first, fuzzy=True)["key_mlbam"].iloc[0]
