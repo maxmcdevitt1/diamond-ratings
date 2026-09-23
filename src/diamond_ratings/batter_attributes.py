@@ -3,14 +3,13 @@ import numpy as np
 from . import data_loader
 from .woba_weights import WOBA_WEIGHTS
 
-data = data_loader.get_batting()
-
 def get_power(year):
     # EV50
     # Barrel%
     # ISO
-    df = data.copy()
-    df = df.loc[df['year'] == year]
+    df = data_loader.get_batting()
+    df = df.loc[df['year'] == year].copy()
+    
     df = df.rename(columns={"avg_best_speed": "ev50", "barrel_batted_rate":"barrel%", "isolated_power":'iso'})
 
     df = df[['last_name, first_name', 'player_id', 'year', 'ev50', 'iso', 'barrel%']]
@@ -22,8 +21,8 @@ def get_power(year):
     return df
 
 def get_contact(year):
-    df = data.loc[data['year'] == year].copy()
-
+    df = data_loader.get_batting()
+    df = df.loc[df['year'] == year].copy()
     df['contact_product'] = (df['iz_contact_percent'] * df['oz_contact_percent'])
 
     df['hit_measure'] = (df['batting_avg'] + df['xba']) / 2

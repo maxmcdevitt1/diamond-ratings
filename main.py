@@ -1,9 +1,7 @@
-from src import pitcher_rating as pitcher
-from src import data_loader
-from src import batter_rating as batter
 from pybaseball import playerid_reverse_lookup
 import pandas as pd
-from src import team_rating
+from diamond_ratings import team_rating, data_loader
+
 
 def main():
     df = team_rating.team(2026)

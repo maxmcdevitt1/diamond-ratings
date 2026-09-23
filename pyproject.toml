@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "diamond-ratings"
+version = "0.1.0a1"
+description = "Video-game-style baseball player ratings and data analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "pybaseball",
+    "python-mlb-statsapi",
+]
+
+[project.urls]
+Repository = "https://github.com/maxmcdevitt1/diamond-ratings"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["diamond_ratings*"]
+namespaces = false

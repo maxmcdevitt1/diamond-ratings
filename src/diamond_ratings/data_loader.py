@@ -3,9 +3,13 @@ import pandas as pd
 from pybaseball import cache
 from pathlib import Path
 from mlbstatsapi import Mlb
-
+import os
 
 cache.enable()
+
+filepath = Path(
+    os.environ.get(
+        "DIAMOND_RATINGS_DATA_DIR", str(Path.home() / ".diamond-ratings" / "data"),)).expanduser().resolve()
 
 def get_all_players(year):
     players = Mlb().get_people(season=str(year))
@@ -32,8 +36,6 @@ def get_team(team_id, year):
 
     return pitchers, batters
 
-project_dir = Path(__file__).resolve().parent.parent
-filepath = project_dir / "data"
 
 def get_batting():
     data = pd.read_csv(filepath/'batting_data'/'stats.csv', encoding="utf-8-sig")
