@@ -13,12 +13,12 @@ def velocity(season):
 
     fb["avg velo"] = fb.groupby(["pitcher", "category"])["release_speed"].transform("median").round(4)
     fb["differential"] = (fb["avg velo"] - fb["Leage_AVG_Velo"]).round(4)
-    fb["count"] = fb.groupby("player_name")["avg velo"].transform("count")
-    minimum = fb.groupby("player_name")["count"].transform("min")
+    fb["count"] = fb.groupby("pitcher")["avg velo"].transform("count")
+    minimum = fb.groupby("pitcher")["count"].transform("min")
     #fb=fb[minimum>100]
     
-    fb = fb[["player_name", "pitch_type", "Leage_AVG_Velo", "avg velo", "differential"]]
-    fb=fb.drop_duplicates(subset=["player_name"])
+    fb = fb[["pitcher", "pitch_type", "Leage_AVG_Velo", "avg velo", "differential"]]
+    fb=fb.drop_duplicates(subset=["pitcher"])
 
     return fb
 
@@ -45,11 +45,11 @@ def movement(season):
 
     df["league_avg_movement"] = df.groupby("pitch_category")["induced_magnitude"].transform("median").round(4)
 
-    df["count"] = df.groupby(["player_name", "pitch_type"])["induced_magnitude"].transform("count")
+    df["count"] = df.groupby(["pitcher", "pitch_type"])["induced_magnitude"].transform("count")
 
-    minimum = df.groupby("player_name")["count"].transform("min")
+    minimum = df.groupby("pitcher")["count"].transform("min")
     
-    df = df[["player_name", "pitch_category", "pitch_type", "induced_magnitude", "mean_movement", "league_avg_movement"]]
+    df = df[["pitcher", "pitch_category", "pitch_type", "induced_magnitude", "mean_movement", "league_avg_movement"]]
 
     df["differential"] = (df["mean_movement"] - df["league_avg_movement"]).round(4)
     return df

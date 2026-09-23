@@ -2,6 +2,7 @@ import pandas as pd
 from . import pitcher_attributes as attr
 import numpy as np
 from . import data_loader
+from pybaseball import playerid_reverse_lookup  
 
 average_whiff_rate = {
     2016: 0.236,
@@ -31,17 +32,12 @@ average_woba = {
 }
 
 class Player():
-    def __init__(self, first, last, year, season=None, player_id=None):
-        self.name = f"{last}, {first}"
-        self.player_id = (
-            data_loader.get_player(first, last)
-            if player_id is None
-            else player_id
-        )
+    def __init__(self, player_id, first, last, year, season=None):
+        self.player_id = player_id
         self.year = year
         self.first = first
         self.last = last
-
+        self.name=f'{first} {last}'
         self.df = (
             data_loader.get_season_pitching(year)
             if season is None
@@ -49,12 +45,15 @@ class Player():
         )
 
         if self.df.empty or not self.df["pitcher"].eq(self.player_id).any():
-           raise ValueError(f"{year}: No data for {first} {last}")
+            raise ValueError(f"{year}: No data for {first} {last}")
 
     def velocity(self):
         vdf = attr.velocity(self.df)
         vdf["velo_percentile"] = vdf["differential"].rank(pct=True) * 100
-        velocity = vdf.loc[vdf["player_name"] == self.name,"velo_percentile"].iloc[0].round()
+        velocity = vdf.loc[vdf["pitcher"] == self.player_id,"velo_percentile"].iloc[0].round()
+
+        if velocity is None:
+            return None
 
         return float(velocity)
 
@@ -64,7 +63,7 @@ class Player():
         # Count measured pitches per player and category.
 
         mdf["pitch_count"] = (
-            mdf.groupby(["player_name", "pitch_category"])
+            mdf.groupby(["pitcher", "pitch_category"])
             ["induced_magnitude"]
             .transform("count")
         )
@@ -72,16 +71,16 @@ class Player():
         movement = (
             mdf.loc[
                 mdf["pitch_count"] > 50,
-                ["player_name", "pitch_category", "induced_magnitude"],
+                ["pitcher", "pitch_category", "induced_magnitude"],
             ]
-            .drop_duplicates(["player_name", "pitch_category"])
+            .drop_duplicates(["pitcher", "pitch_category"])
             .copy()
         )
 
         movement['movement_percentile'] = (
             movement.groupby('pitch_category')['induced_magnitude'].rank(pct=True) * 100)
 
-        movement = movement[movement['player_name'] == (self.name)]
+        movement = movement[movement['pitcher'] == (self.player_id)]
         # Get differential of movement from league average movement
         
         weights = {
@@ -121,9 +120,15 @@ class Player():
         return float(control['score'].iloc[0])
     
     def war(self):
-        
         df = attr.get_war(self.year)
-        return (df.loc[df["xMLBAMID"] == self.player_id, 'percentile'].iloc[0]).round(2)
+        
+        if df is None or df.empty:
+            return None
+        df = (df.loc[df["xMLBAMID"] == self.player_id, 'percentile']).round(2)
+        if df.empty:
+            return None
+
+        return df.iloc[0]
 
     def woba(self):
         woba = attr.calculate_woba(self.year, self.df)
@@ -143,7 +148,7 @@ class Player():
     def ratings(self):
         data = {
             "year": self.year,
-            "player_name":self.name,
+            "pitcher":self.name,
             "pitcher":self.player_id,
             "movement": self.movement(),
             "velocity": self.velocity(),
