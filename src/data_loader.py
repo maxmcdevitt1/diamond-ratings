@@ -80,5 +80,5 @@ def get_command(year):
 def get_fangraphs(year):
     return pd.DataFrame(pd.read_csv(filepath/'fangraphs'/f'fg_pitching_{year}.csv', encoding="utf-8-sig"))
 
-def save_df(df):
-    df.to_parquet(filepath/'df.parquet')
+def save_df(df, filename):
+    df.to_parquet(filepath / filename)

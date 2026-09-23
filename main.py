@@ -7,8 +7,8 @@ from src import team_rating
 
 def main():
     df = team_rating.team(2026)
-    data_loader.save_df(df[0])
-    data_loader.save_df(df[1])
+    data_loader.save_df(df[0], 'batter.parquet')
+    data_loader.save_df(df[1], 'pitcher.parquet')
     return df[0], df[1]
 
 

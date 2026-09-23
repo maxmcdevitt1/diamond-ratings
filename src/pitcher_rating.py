@@ -71,14 +71,14 @@ class Player():
         movement = (
             mdf.loc[
                 mdf["pitch_count"] > 50,
-                ["pitcher", "pitch_category", "induced_magnitude"],
+                ["pitcher", "pitch_category", "mean_movement"],
             ]
             .drop_duplicates(["pitcher", "pitch_category"])
             .copy()
         )
 
         movement['movement_percentile'] = (
-            movement.groupby('pitch_category')['induced_magnitude'].rank(pct=True) * 100)
+            movement.groupby('pitch_category')['mean_movement'].rank(pct=True) * 100)
 
         movement = movement[movement['pitcher'] == (self.player_id)]
         # Get differential of movement from league average movement
