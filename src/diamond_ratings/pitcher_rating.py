@@ -32,20 +32,16 @@ average_woba = {
 }
 
 class Player():
-    def __init__(self, player_id, first, last, year, season=None):
+    def __init__(self, player_id, year):
         self.player_id = player_id
+
         self.year = year
-        self.first = first
-        self.last = last
-        self.name=f'{first} {last}'
-        self.df = (
-            data_loader.get_season_pitching(year)
-            if season is None
-            else season
-        )
+        self.name = playerid_reverse_lookup([player_id])
+        self.df = data_loader.get_season_pitching(year)
+
 
         if self.df.empty or not self.df["pitcher"].eq(self.player_id).any():
-            print((f"{year}: No data for {first} {last}"))
+            print((f"{year}: No data for {self.name}"))
             return None
 
     def velocity(self):
@@ -113,7 +109,7 @@ class Player():
         control = attr.get_control(data_loader.get_command(self.year))
         if control is None:
             return
-        control = control[control["pitcher"] == f'{self.first} {self.last}']
+        control = control[control["pitcher"] == self.player_id]
         if control.empty:
             return None
         # Returns percentile

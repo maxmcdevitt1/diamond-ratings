@@ -1,16 +1,14 @@
 import pandas as pd
 from . import batter_attributes as attr
 from . import batter_attributes as attr
-
+from pybaseball import playerid_reverse_lookup
 
 class Player():
 
-    def __init__(self, first, last, year, id):
-        self.name = f'{last}, {first}'
+    def __init__(self, year, id):
+        self.name = playerid_reverse_lookup([id])
         
         self.year = year
-        self.first = first
-        self.last = last
         self.id = id
 
 
