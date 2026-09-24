@@ -8,6 +8,7 @@ from . import data_loader as load
 def velocity(season):
     fastballs = ('SI', 'FF', 'FC')
     fb = season[season['pitch_type'].isin(fastballs)]
+    
     fb["category"] = "fastball"
     fb["Leage_AVG_Velo"] = fb.groupby("category")["release_speed"].transform("median").round(4)
 

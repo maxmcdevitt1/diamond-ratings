@@ -45,17 +45,18 @@ class Player():
         )
 
         if self.df.empty or not self.df["pitcher"].eq(self.player_id).any():
-            raise ValueError(f"{year}: No data for {first} {last}")
+            print((f"{year}: No data for {first} {last}"))
+            return None
 
     def velocity(self):
         vdf = attr.velocity(self.df)
         vdf["velo_percentile"] = vdf["differential"].rank(pct=True) * 100
-        velocity = vdf.loc[vdf["pitcher"] == self.player_id,"velo_percentile"].iloc[0].round()
+        velocity = vdf.loc[vdf["pitcher"] == self.player_id,"velo_percentile"]
 
-        if velocity is None:
+        if velocity is None or velocity.empty:
             return None
 
-        return float(velocity)
+        return float(velocity.iloc[0])
 
     def movement(self):
         mdf = attr.movement(self.df)
@@ -141,8 +142,12 @@ class Player():
     def get_whiff(self):
         whiff = attr.get_whif(self.df)
         whiff['score'] = whiff['whiff_rate'].rank(pct=True)
-        score =  (whiff[whiff['pitcher'] == self.player_id]['score']).iloc[0]
-        score = (score * 100).round(4)
+        score = (whiff[whiff['pitcher'] == self.player_id]['score'])
+
+        if score.empty:
+            return None
+        
+        score = (score.iloc[0] * 100).round(4)
         return float(score)
     
     def ratings(self):

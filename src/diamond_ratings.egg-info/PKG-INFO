@@ -5,11 +5,13 @@ Summary: Video-game-style baseball player ratings and data analysis
 Project-URL: Repository, https://github.com/maxmcdevitt1/diamond-ratings
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
+License-File: LICENSE
 Requires-Dist: numpy
 Requires-Dist: pandas
 Requires-Dist: pyarrow
 Requires-Dist: pybaseball
 Requires-Dist: python-mlb-statsapi
+Dynamic: license-file
 
 <div align="center">
 

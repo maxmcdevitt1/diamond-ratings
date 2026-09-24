@@ -6,21 +6,21 @@ from mlbstatsapi import Mlb
 
 
 
-def team(year):
+def team(year, team_id):
     data_loader.get_all_pitchers()
 
     batters = []
     pitchers = []
 
     mlb = Mlb()
-    team_id = mlb.get_team_id('Atlanta Braves')[0]
 
     team = data_loader.get_team(team_id, year)
 
     for i in team[0]:
         player = data_loader.get_player_name([i])
-        #if player.empty:
-        #    continue
+        if player.empty:
+            print(f"No name found for batter ID {i}")
+            continue
         first = player['name_first'].iloc[0]
         last = player['name_last'].iloc[0]
 
@@ -41,3 +41,10 @@ def team(year):
         batters.append(player.ratings())
 
     return pd.concat(batters, ignore_index=True), pd.concat(pitchers, ignore_index=True)
+
+def team_rating(pitchers, batters):
+    pitchers_score = pitchers['war'].median()
+    batters_score = batters['WAR'].median()
+
+    score = (pitchers_score+batters_score)/2
+    return score
