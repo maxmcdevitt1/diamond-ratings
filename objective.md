@@ -1,4 +1,6 @@
 # <div align="center">OBJECTIVE
+<br>
+[pypi](https://pypi.org/manage/projects/)
 
 Take MLB data and statistics and use that to create a "MLB the Show" style player ranking with attributes such as velocity, movement, power, contact, as well as an overall.
 

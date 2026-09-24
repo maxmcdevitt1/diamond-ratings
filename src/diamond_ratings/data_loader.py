@@ -7,10 +7,13 @@ import os
 
 cache.enable()
 
-filepath = Path(
-    os.environ.get(
-        "DIAMOND_RATINGS_DATA_DIR", str(Path.home() / ".diamond-ratings" / "data"),)).expanduser().resolve()
+root = Path(__file__).resolve().parents[2]
+data_dir = root/'data'
 
+if not data_dir.is_dir():
+    raise FileNotFoundError(
+        f"Data directory not found: {data_dir}"
+    )
 def get_all_players(year):
     players = Mlb().get_people(season=str(year))
     df = pd.DataFrame([dict(player) for player in players])
@@ -38,17 +41,17 @@ def get_team(team_id, year):
 
 
 def get_batting():
-    data = pd.read_csv(filepath/'batting_data'/'stats.csv', encoding="utf-8-sig")
+    data = pd.read_csv(data_dir/'batting_data'/'stats.csv', encoding="utf-8-sig")
     return pd.DataFrame(data)
 
 def get_batting_war():
-    data = pd.read_csv(filepath/'batting_data'/'2026war.csv', encoding="utf-8-sig")
+    data = pd.read_csv(data_dir/'batting_data'/'2026war.csv', encoding="utf-8-sig")
     return data.rename(columns={"   ": "year_ID"})
     #return pd.DataFrame(data)
 
     
 def get_batting_year(year):
-    data = pd.read_csv(filepath/'batting_data'/f'{year}_batting.csv', encoding="utf-8-sig")
+    data = pd.read_csv(data_dir/'batting_data'/f'{year}_batting.csv', encoding="utf-8-sig")
     return pd.DataFrame(data)
 
 
@@ -61,26 +64,26 @@ def get_player_name(player_id):
 
 def get_all_pitchers():
     for year in range(2021, 2027):
-        if (filepath/'pitching_data'/f'{year}.parquet').exists():
+        if (data_dir/'pitching_data'/f'{year}.parquet').exists():
             continue
         else:
             all_pitchers = statcast(start_dt=f'{year}-03-27',end_dt=f'{year}-10-01')
             df = pd.DataFrame(all_pitchers)
-            df.to_parquet(filepath/'pitching_data'/f'{year}.parquet')
+            df.to_parquet(data_dir/'pitching_data'/f'{year}.parquet')
         
 def get_season_pitching(year):
-    return pd.read_parquet(filepath/"pitching_data"/f'{year}.parquet')
+    return pd.read_parquet(data_dir/"pitching_data"/f'{year}.parquet')
 
 def get_command(year):
     try:
-        y =  pd.read_csv(filepath/'pitching_data'/f'{year}command.csv', encoding="utf-8-sig")
+        y =  pd.read_csv(data_dir/'pitching_data'/f'{year}command.csv', encoding="utf-8-sig")
         df = pd.DataFrame(y)
         return(df)
     except FileNotFoundError:
         return None
 
 def get_fangraphs(year):
-    return pd.DataFrame(pd.read_csv(filepath/'fangraphs'/f'fg_pitching_{year}.csv', encoding="utf-8-sig"))
+    return pd.DataFrame(pd.read_csv(data_dir/'fangraphs'/f'fg_pitching_{year}.csv', encoding="utf-8-sig"))
 
 def save_df(df, filename):
-    df.to_parquet(filepath / filename)
+    df.to_parquet(data_dir / filename)
