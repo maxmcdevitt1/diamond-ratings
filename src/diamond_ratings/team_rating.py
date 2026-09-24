@@ -19,12 +19,8 @@ def team(year, team_id):
             print(f"No name found for pitcher ID {player_id}")
             continue
 
-        first = player["name_first"].iloc[0]
-        last = player["name_last"].iloc[0]
-
         data = pitcher.Player(player_id, year)
         ratings = data.ratings()
-        ratings["player_name"] = f"{first} {last}"
 
         pitchers.append(ratings)
 
@@ -35,12 +31,9 @@ def team(year, team_id):
             print(f"No name found for batter ID {player_id}")
             continue
 
-        first = player["name_first"].iloc[0]
-        last = player["name_last"].iloc[0]
 
         data = batter.Player(year, player_id)
         ratings = data.ratings()
-        ratings["player_name"] = f"{first} {last}"
 
         batters.append(ratings)
 
@@ -49,8 +42,8 @@ def team(year, team_id):
         pd.concat(pitchers, ignore_index=True),
     )
 def team_rating(pitchers, batters):
-    pitchers_score = pitchers['war'].median()
-    batters_score = batters['WAR'].median()
+    pitchers_score = pitchers['WAR'].sum()
+    batters_score = batters['WAR'].sum()
 
-    score = (pitchers_score+batters_score)/2
+    score = pitchers_score + batters_score
     return score

@@ -208,7 +208,6 @@ def get_war(year):
     df = load.get_fangraphs(year)[["xMLBAMID", "WAR"]].copy()
 
     df['percentile'] = (df['WAR'].rank(pct=True)*100).round(3)
-    #war = df.loc[df["xMLBAMID"] == playerid, 'percentile'].iloc[0]
 
     
     return df

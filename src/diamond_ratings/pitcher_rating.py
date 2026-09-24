@@ -121,11 +121,16 @@ class Player():
         
         if df is None or df.empty:
             return None
-        df = (df.loc[df["xMLBAMID"] == self.player_id, 'percentile']).round(2)
-        if df.empty:
+        
+        ovr = (df.loc[df["xMLBAMID"] == self.player_id, 'percentile']).round(2)
+        war = (df.loc[df["xMLBAMID"] == self.player_id, 'WAR']).round(3)
+       
+        if ovr.empty:
+            return None
+        if war.empty:
             return None
 
-        return df.iloc[0]
+        return float(ovr.iloc[0]), float(war.iloc[0])
 
     def woba(self):
         woba = attr.calculate_woba(self.year, self.df)
@@ -147,14 +152,18 @@ class Player():
         return float(score)
     
     def ratings(self):
+        war_result = self.war()
+        ovr, war = war_result
+
         data = {
             "year": self.year,
             "pitcher":self.name,
-            "pitcher":self.player_id,
+            "player_id":self.player_id,
             "movement": self.movement(),
             "velocity": self.velocity(),
             "control": self.control(),
-            "war": self.war(),
+            'OVR':ovr,
+            "WAR": war,
             "woba": self.woba(),
             "whiff": self.get_whiff(),
         }
