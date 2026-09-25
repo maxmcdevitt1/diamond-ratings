@@ -16,7 +16,7 @@ class Player():
 
 
     def power(self):
-        df = attr.get_power(self, self.year, self.df)
+        df = attr.get_power(self.year, self.df)
 
         df = df.loc[df['player_id'] == self.id]
         if df.empty:
