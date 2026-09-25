@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from .woba_weights import WOBA_WEIGHTS
-from . import data_loader as load
 
 
 
@@ -204,9 +203,5 @@ def get_control(season):
 
     return df
 
-def get_war(year):
-    df = load.get_fangraphs(year)[["xMLBAMID", "WAR"]].copy()
 
-    df['percentile'] = (df['WAR'].rank(pct=True)*100).round(3)
-
-    return df
+    

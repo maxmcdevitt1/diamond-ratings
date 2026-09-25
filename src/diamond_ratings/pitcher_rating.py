@@ -40,7 +40,7 @@ class Player():
         self.df = data_loader.get_season_pitching(year)
 
 
-        if self.df.empty or not self.df["pitcher"].eq(self.player_id).any():
+        if not self.df["pitcher"].eq(self.player_id).any():
             print((f"{year}: No data for {self.name}"))
             return None
 
@@ -117,20 +117,17 @@ class Player():
         return float(control['score'].iloc[0])
     
     def war(self):
-        df = attr.get_war(self.year)
-        
-        if df is None or df.empty:
-            return None
-        
-        ovr = (df.loc[df["xMLBAMID"] == self.player_id, 'percentile']).round(2)
-        war = (df.loc[df["xMLBAMID"] == self.player_id, 'WAR']).round(3)
-       
-        if ovr.empty:
-            return None
-        if war.empty:
-            return None
+        df = data_loader.get_war(self.year, is_pitcher=True)
+        df = df[df['player_id'] == self.player_id]
 
-        return float(ovr.iloc[0]), float(war.iloc[0])
+        # Keeps '2TM and combined season war
+        
+        df = df.drop_duplicates(subset=['player_id'])
+
+        if df.empty:
+            return None
+        war = df['WAR'].iloc[0]
+        return float(war)
 
     def woba(self):
         woba = attr.calculate_woba(self.year, self.df)
@@ -152,9 +149,6 @@ class Player():
         return float(score)
     
     def ratings(self):
-        war_result = self.war()
-        ovr, war = war_result
-
         data = {
             "year": self.year,
             "pitcher":self.name,
@@ -162,8 +156,7 @@ class Player():
             "movement": self.movement(),
             "velocity": self.velocity(),
             "control": self.control(),
-            'OVR':ovr,
-            "WAR": war,
+            'OVR':self.war(),
             "woba": self.woba(),
             "whiff": self.get_whiff(),
         }

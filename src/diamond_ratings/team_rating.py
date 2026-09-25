@@ -3,6 +3,7 @@ from . import pitcher_rating as pitcher
 from . import batter_rating as batter
 import pandas as pd
 from mlbstatsapi import Mlb
+from pybaseball import playerid_reverse_lookup
 
 
 
@@ -13,11 +14,6 @@ def team(year, team_id):
     batters = []
 
     for player_id in pitcher_ids:
-        player = data_loader.get_player_name([player_id])
-
-        if player.empty:
-            print(f"No name found for pitcher ID {player_id}")
-            continue
 
         data = pitcher.Player(player_id, year)
         ratings = data.ratings()
@@ -25,13 +21,6 @@ def team(year, team_id):
         pitchers.append(ratings)
 
     for player_id in batter_ids:
-        player = data_loader.get_player_name([player_id])
-
-        if player.empty:
-            print(f"No name found for batter ID {player_id}")
-            continue
-
-
         data = batter.Player(year, player_id)
         ratings = data.ratings()
 
@@ -41,11 +30,3 @@ def team(year, team_id):
         pd.concat(batters, ignore_index=True),
         pd.concat(pitchers, ignore_index=True),
     )
-def team_rating(pitchers, batters, year):
-    pitcher_df = data_loader.get_fangraphs(year)
-    batter_df = data_loader.get_batting_war(year)
-
-    pit
-
-    score = pitchers_score + batters_score
-    return score

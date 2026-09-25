@@ -3,12 +3,10 @@ import numpy as np
 from . import data_loader
 from .woba_weights import WOBA_WEIGHTS
 
-def get_power(year):
+def get_power(year, df):
     # EV50
     # Barrel%
     # ISO
-    df = data_loader.get_batting()
-    df = df.loc[df['year'] == year].copy()
     
     df = df.rename(columns={"avg_best_speed": "ev50", "barrel_batted_rate":"barrel%", "isolated_power":'iso'})
 
@@ -20,9 +18,7 @@ def get_power(year):
 
     return df
 
-def get_contact(year):
-    df = data_loader.get_batting()
-    df = df.loc[df['year'] == year].copy()
+def get_contact(year, df):
     df['contact_product'] = (df['iz_contact_percent'] * df['oz_contact_percent'])
 
     df['hit_measure'] = (df['batting_avg'] + df['xba']) / 2
@@ -40,13 +36,4 @@ def get_contact(year):
     return df
 
 
-def get_war(year):
-    df = data_loader.get_batting_war().copy()
-
-    df["year_ID"] = pd.to_numeric(df["year_ID"], errors="coerce")
-    df["WAR"] = pd.to_numeric(df["WAR"], errors="coerce")
-
-    df = df.loc[df["year_ID"] > 2016].copy()
-    df["war_score"] = df.groupby("year_ID")["WAR"].rank(pct=True)
-
-    return df
+#def get_war(year):

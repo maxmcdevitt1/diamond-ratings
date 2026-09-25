@@ -2,6 +2,7 @@ import pandas as pd
 from . import batter_attributes as attr
 from . import batter_attributes as attr
 from pybaseball import playerid_reverse_lookup
+from . import data_loader
 
 class Player():
 
@@ -10,10 +11,12 @@ class Player():
         
         self.year = year
         self.id = id
+        self.df = data_loader.get_batting()
+        self.df = self.df.loc[self.df['year'] == year]
 
 
     def power(self):
-        df = attr.get_power(self.year)
+        df = attr.get_power(self, self.year, self.df)
 
         df = df.loc[df['player_id'] == self.id]
         if df.empty:
@@ -38,19 +41,17 @@ class Player():
         return float(df['contact_score'].iloc[0] * 100)
 
     def war(self):
-        
-        df = attr.get_war(self.year)
+        df = data_loader.get_war(self.year, is_pitcher=False)
+        df = df[df['player_id'] == self.player_id]
 
-        df = df[df['year '] == self.year]
+        # Keeps '2TM and combined season war
         
-        war = df[['mlb_ID']=='player_id', 'WAR']
-        
+        df = df.drop_duplicates(subset=['player_id'])
+
         if df.empty:
             return None
-        if war.empty:
-            return None
-        
-        return float(((df['war_score'].iloc[0]) * 100).round(2))
+        war = df['WAR'].iloc[0]
+        return float(war)        
 
     def ratings(self):
         data = {
@@ -59,7 +60,7 @@ class Player():
             "batter":self.id,
             "Power": self.power(),
             "Contact": self.contact(),
-            'WAR': self.war()
+            'OVR': self.war()
                 }
         
         return pd.DataFrame([data])

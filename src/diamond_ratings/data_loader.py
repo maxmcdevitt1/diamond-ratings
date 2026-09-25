@@ -3,6 +3,8 @@ import pandas as pd
 from pybaseball import cache
 from pathlib import Path
 from mlbstatsapi import Mlb
+import re
+
 
 team_ids = {
     "Arizona Diamondbacks": 109,
@@ -42,14 +44,8 @@ root = Path(__file__).resolve().parents[2]
 data_dir = root/'data'
 
 if not data_dir.is_dir():
-    raise FileNotFoundError(
-        f"Data directory not found: {data_dir}"
-    )
-def get_all_players(year):
-    players = Mlb().get_people(season=str(year))
-    df = pd.DataFrame([dict(player) for player in players])
-    df = df[['id', 'use_name', 'use_last_name']]
-    return df
+    raise FileNotFoundError(f"Data directory not found: {data_dir}")
+
 
 def get_team(team_id, year):
     mlb = Mlb()
@@ -72,26 +68,10 @@ def get_team(team_id, year):
 
 
 def get_batting():
+    # STATCAST
+
     data = pd.read_csv(data_dir/'batting_data'/'stats.csv', encoding="utf-8-sig")
     return pd.DataFrame(data)
-
-def get_batting_war(year):
-    data = pd.read_csv(data_dir/'batting_data'/'2026war.csv', encoding="utf-8-sig")
-    data = data.rename(columns={"   ": "year"})
-    return  data.loc[data['year'] == year]
-
-
-    
-def get_batting_year(year):
-    data = pd.read_csv(data_dir/'batting_data'/f'{year}_batting.csv', encoding="utf-8-sig")
-    return pd.DataFrame(data)
-
-
-def get_player(first, last):
-    return playerid_lookup(last, first, fuzzy=True)["key_mlbam"].iloc[0]
-
-def get_player_name(player_id):
-    return playerid_reverse_lookup(player_id)
 
 
 def get_all_pitchers():
@@ -114,8 +94,52 @@ def get_command(year):
     except FileNotFoundError:
         return None
 
-def get_fangraphs(year):
-    return pd.DataFrame(pd.read_csv(data_dir/'fangraphs'/f'fg_pitching_{year}.csv', encoding="utf-8-sig"))
 
 def save_df(df, filename):
     df.to_parquet(data_dir / filename)
+
+
+def get_war(year, is_pitcher):
+    if is_pitcher:
+        df = pd.read_csv(data_dir/'pitching_data'/f'{year}_bref_pitching_war.csv')
+    else:
+        df = pd.read_csv(data_dir/'batting_data'/f'{year}_bref_hitting_war.csv')
+    
+    df['player_name'] = normalize_name(df['Player'])
+    df = df.drop(columns=['Player'])
+
+    players = get_player_map(year)
+
+    df = df.merge(players, on='player_name', how='left')
+    return df
+
+
+def normalize_name(s):
+    return (
+        s.astype(str)
+         .str.replace(r"[*#]", "", regex=True)
+         .str.replace(".", "", regex=False)
+         .str.strip()
+         .str.lower()
+    )
+
+def get_player_map(year):
+    mlb = Mlb()
+    players = mlb.get_people(season=str(year))
+
+    df = pd.DataFrame([dict(p) for p in players])
+
+    df["name"] = (
+        df["use_name"].astype(str).str.strip()
+        + " "
+        + df["use_last_name"].astype(str).str.strip()
+    )
+
+    df["clean_name"] = normalize_name(df["name"])
+
+    return df[["id", "clean_name"]].rename(
+        columns={
+            "id": "player_id",
+            "clean_name": "player_name"
+        }
+    )
