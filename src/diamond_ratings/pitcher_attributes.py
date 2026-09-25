@@ -209,5 +209,4 @@ def get_war(year):
 
     df['percentile'] = (df['WAR'].rank(pct=True)*100).round(3)
 
-    
     return df

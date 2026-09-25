@@ -39,10 +39,10 @@ class Player():
 
     def war(self):
         
-        df = attr.get_war()
+        df = attr.get_war(self.year)
 
-        ovr = df.loc[(df["mlb_ID"] == self.id) & (df["year"] == self.year)]
-        df = df[df['year'] == self.year]
+        df = df[df['year '] == self.year]
+        
         war = df[['mlb_ID']=='player_id', 'WAR']
         
         if df.empty:
@@ -50,7 +50,7 @@ class Player():
         if war.empty:
             return None
         
-        return float(((df['war_score'].iloc[0]) * 100).round(2)), float((war.iloc[0]*100).round(3))
+        return float(((df['war_score'].iloc[0]) * 100).round(2))
 
     def ratings(self):
         data = {
@@ -59,8 +59,7 @@ class Player():
             "batter":self.id,
             "Power": self.power(),
             "Contact": self.contact(),
-            'OVR':self.war()[1],
-            'WAR': self.war()[0]
+            'WAR': self.war()
                 }
         
         return pd.DataFrame([data])

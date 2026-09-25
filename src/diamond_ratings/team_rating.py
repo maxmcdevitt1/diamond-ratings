@@ -41,9 +41,11 @@ def team(year, team_id):
         pd.concat(batters, ignore_index=True),
         pd.concat(pitchers, ignore_index=True),
     )
-def team_rating(pitchers, batters):
-    pitchers_score = pitchers['WAR'].sum()
-    batters_score = batters['WAR'].sum()
+def team_rating(pitchers, batters, year):
+    pitcher_df = data_loader.get_fangraphs(year)
+    batter_df = data_loader.get_batting_war(year)
+
+    pit
 
     score = pitchers_score + batters_score
     return score

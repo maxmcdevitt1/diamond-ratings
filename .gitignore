@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
 .venv/
-data/pitching_data/*.parquet
 .vscode/
+dist/
+.~lock.*

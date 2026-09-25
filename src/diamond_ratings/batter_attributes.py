@@ -40,7 +40,7 @@ def get_contact(year):
     return df
 
 
-def get_war():
+def get_war(year):
     df = data_loader.get_batting_war().copy()
 
     df["year_ID"] = pd.to_numeric(df["year_ID"], errors="coerce")

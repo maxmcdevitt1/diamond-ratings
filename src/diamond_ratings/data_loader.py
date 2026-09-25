@@ -75,10 +75,10 @@ def get_batting():
     data = pd.read_csv(data_dir/'batting_data'/'stats.csv', encoding="utf-8-sig")
     return pd.DataFrame(data)
 
-def get_batting_war():
+def get_batting_war(year):
     data = pd.read_csv(data_dir/'batting_data'/'2026war.csv', encoding="utf-8-sig")
     data = data.rename(columns={"   ": "year"})
-    return  data.loc[data['year']>2015]
+    return  data.loc[data['year'] == year]
 
 
     
