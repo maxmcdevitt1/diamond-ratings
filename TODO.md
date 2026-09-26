@@ -12,6 +12,8 @@ database/API layer
 
 polished visualizations and explainability
 
-Package it with pyproject.toml
+add final score loading via the final parquet files
+
+add speed score 
 
 '''
