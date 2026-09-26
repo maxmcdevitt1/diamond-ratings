@@ -20,6 +20,7 @@ def velocity(season):
     fb = fb[["pitcher", "pitch_type", "Leage_AVG_Velo", "avg velo", "differential"]]
     fb=fb.drop_duplicates(subset=["pitcher"])
 
+    
     return fb
 
 def movement(season):
@@ -199,7 +200,7 @@ def get_control(season):
 
     df['score'] = (df['inferred_in'].rank(pct=True, ascending=False)*100).round(3)
 
-    df = df[['pitcher', 'score', 'n']]
+    df = df[['player_id', 'score', 'n']]
 
     return df
 

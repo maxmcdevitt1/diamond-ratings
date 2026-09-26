@@ -36,7 +36,15 @@ class Player():
         self.player_id = player_id
 
         self.year = year
-        self.name = playerid_reverse_lookup([player_id])
+        player = playerid_reverse_lookup([player_id])
+
+        if player.empty:
+            self.name = "unknown"
+        else:
+            self.name = (
+                f"{player['name_first'].iloc[0]} "
+                f"{player['name_last'].iloc[0]}"
+            )
         self.df = data_loader.get_season_pitching(year)
 
 
@@ -109,7 +117,7 @@ class Player():
         control = attr.get_control(data_loader.get_command(self.year))
         if control is None:
             return
-        control = control[control["pitcher"] == self.player_id]
+        control = control[control["player_id"] == self.player_id]
         if control.empty:
             return None
         # Returns percentile
@@ -118,16 +126,18 @@ class Player():
     
     def war(self):
         df = data_loader.get_war(self.year, is_pitcher=True)
-        df = df[df['player_id'] == self.player_id]
-
-        # Keeps '2TM and combined season war
+        df['OVR'] = (df['WAR'].rank(pct=True) * 100)
         
         df = df.drop_duplicates(subset=['player_id'])
 
+        df = df[df['player_id'] == self.player_id]
+
+        # Keeps '2TM and combined season war
         if df.empty:
-            return None
+            return None, None
         war = df['WAR'].iloc[0]
-        return float(war)
+        ovr = df['OVR'].iloc[0]
+        return float(war), float(ovr)
 
     def woba(self):
         woba = attr.calculate_woba(self.year, self.df)
@@ -149,6 +159,8 @@ class Player():
         return float(score)
     
     def ratings(self):
+        war, ovr = self.war()
+
         data = {
             "year": self.year,
             "pitcher":self.name,
@@ -156,7 +168,8 @@ class Player():
             "movement": self.movement(),
             "velocity": self.velocity(),
             "control": self.control(),
-            'OVR':self.war(),
+            'OVR':ovr,
+            'WAR':war,
             "woba": self.woba(),
             "whiff": self.get_whiff(),
         }

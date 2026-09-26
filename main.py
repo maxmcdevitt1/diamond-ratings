@@ -12,8 +12,8 @@ def main():
 
         scores[team_name] = team_rating.team_rating(pitchers, batters)
 
-        batters = batters.assign(team=team_name, team_id=team_id)
-        pitchers = pitchers.assign(team=team_name, team_id=team_id)
+        batters = batters.assign(team=team_name)
+        pitchers = pitchers.assign(team=team_name)
 
         batter_teams.append(batters)
         pitcher_teams.append(pitchers)

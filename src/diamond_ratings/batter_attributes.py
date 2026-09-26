@@ -34,6 +34,3 @@ def get_contact(year, df):
              'batting_avg', 'bat_control_score', 'hit_score', 'hit_measure']]
 
     return df
-
-
-#def get_war(year):

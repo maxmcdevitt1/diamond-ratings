@@ -90,9 +90,19 @@ def get_command(year):
     try:
         y =  pd.read_csv(data_dir/'pitching_data'/f'{year}command.csv', encoding="utf-8-sig")
         df = pd.DataFrame(y)
-        return(df)
+        
     except FileNotFoundError:
-        return None
+        raise FileNotFoundError
+
+    df['player_name'] = normalize_name(df['pitcher'])
+    
+    df = df.drop(columns=['pitcher'])
+
+    players = get_player_map(year)
+
+    df = df.merge(players, on='player_name', how='left')
+    return df
+
 
 
 def save_df(df, filename):

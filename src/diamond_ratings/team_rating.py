@@ -30,3 +30,8 @@ def team(year, team_id):
         pd.concat(batters, ignore_index=True),
         pd.concat(pitchers, ignore_index=True),
     )
+
+def team_rating(pitchers, batters):
+    a = pitchers['WAR'].sum()
+    b = batters['WAR'].sum()
+    return (a+b)
