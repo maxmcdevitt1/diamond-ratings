@@ -21,7 +21,7 @@ class Player():
 
 
     def power(self):
-        df = attr.get_power(self.year, self.df)
+        df = attr.get_power(self.df)
 
         df = df.loc[df['player_id'] == self.player_id]
         if df.empty:
@@ -46,7 +46,7 @@ class Player():
         return round(float(df['contact_score'].iloc[0] * 100))
     
     def war(self):
-        df = data_loader.get_war(self.year, is_pitcher=False)
+        df = data_loader.get_war(is_pitcher=False)
         df['OVR'] = (df['WAR'].rank(pct=True) * 100)
         
         df = df.drop_duplicates(subset=['player_id'])
@@ -56,21 +56,32 @@ class Player():
         # Keeps '2TM and combined season war
         if df.empty:
             return None, None
+        
         war = df['WAR'].iloc[0]
         ovr = df['OVR'].iloc[0]
         return float(war), float(ovr)
+
+    def speed(self):
+        speed = attr.get_speed(self.df)
+        speed = speed[speed['player_id'] == self.player_id]
+        if speed.empty:
+            return None
+        speed = speed['speed'].iloc[0] * 100
+        return float(round(speed))
+
 
     def ratings(self):
         war, ovr = self.war()
 
         data = {
             "year" : self.year,
+            "player_id":self.player_id,
             "player_name":self.name,
-            "batter":self.player_id,
             "Power": self.power(),
             "Contact": self.contact(),
             'OVR': ovr,
             'WAR':war,
+            'speed':self.speed()
                 }
         
         return pd.DataFrame([data])

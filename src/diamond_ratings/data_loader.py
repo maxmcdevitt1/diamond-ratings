@@ -153,3 +153,9 @@ def get_player_map(year):
             "clean_name": "player_name"
         }
     )
+
+def load_final_df():
+    batter = pd.read_parquet(data_dir/'batter.parquet')
+    pitcher = pd.read_parquet(data_dir/'pitcher.parquet')
+
+    return batter, pitcher

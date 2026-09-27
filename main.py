@@ -32,8 +32,7 @@ def main():
         .sort_values("rating", ascending=False)
         .reset_index(drop=True)
     )    
-    return scores
-
+    data_loader.save_df(scores, 'teams.parquet')
 
 if __name__ == "__main__":
     main()

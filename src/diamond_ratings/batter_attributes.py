@@ -3,7 +3,7 @@ import numpy as np
 from . import data_loader
 from .woba_weights import WOBA_WEIGHTS
 
-def get_power(year, df):
+def get_power(df):
     # EV50
     # Barrel%
     # ISO
@@ -18,7 +18,7 @@ def get_power(year, df):
 
     return df
 
-def get_contact(year, df):
+def get_contact(df):
     df['contact_product'] = (df['iz_contact_percent'] * df['oz_contact_percent'])
 
     df['hit_measure'] = (df['batting_avg'] + df['xba']) / 2
@@ -33,4 +33,9 @@ def get_contact(year, df):
     df = df[['last_name, first_name', 'year', 'player_id', 'contact_score', 
              'batting_avg', 'bat_control_score', 'hit_score', 'hit_measure']]
 
+    return df
+
+
+def get_speed(df):
+    df['speed'] = df['sprint_speed'].rank(pct=True)
     return df

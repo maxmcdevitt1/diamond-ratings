@@ -2,8 +2,6 @@ from . import data_loader
 from . import pitcher_rating as pitcher
 from . import batter_rating as batter
 import pandas as pd
-from mlbstatsapi import Mlb
-from pybaseball import playerid_reverse_lookup
 
 
 

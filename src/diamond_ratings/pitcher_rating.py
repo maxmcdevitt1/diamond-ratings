@@ -163,8 +163,8 @@ class Player():
 
         data = {
             "year": self.year,
-            "pitcher":self.name,
             "player_id":self.player_id,
+            "player_name":self.name,
             "movement": self.movement(),
             "velocity": self.velocity(),
             "control": self.control(),
