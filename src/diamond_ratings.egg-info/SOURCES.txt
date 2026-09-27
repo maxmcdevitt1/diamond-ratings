@@ -14,3 +14,7 @@ src/diamond_ratings.egg-info/SOURCES.txt
 src/diamond_ratings.egg-info/dependency_links.txt
 src/diamond_ratings.egg-info/requires.txt
 src/diamond_ratings.egg-info/top_level.txt
+tests/test_batter_attributes.py
+tests/test_batter_rating.py
+tests/test_pitcher_attributes.py
+tests/test_pitcher_rating.py

@@ -200,7 +200,7 @@ def get_control(season):
 
     df['score'] = (df['inferred_in'].rank(pct=True, ascending=False)*100).round(3)
 
-    df = df[['player_id', 'score', 'n']]
+    df = df[['pitcher_id', 'score', 'n']]
 
     return df
 

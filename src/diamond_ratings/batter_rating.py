@@ -9,11 +9,14 @@ class Player():
         player = playerid_reverse_lookup([player_id])
         if player.empty:
             self.name = "unknown"
+
         else:
             self.name = (
                     f"{player['name_first'].iloc[0]} "
                     f"{player['name_last'].iloc[0]}"
-                )        
+                )
+    
+
         self.year = year
         self.player_id = player_id
         self.df = data_loader.get_batting()
@@ -37,7 +40,7 @@ class Player():
         return float((score * 100).round())
 
     def contact(self):
-        df = attr.get_contact(self.year, self.df)
+        df = attr.get_contact(self.df)
 
         df = df.loc[df['player_id'] == self.player_id]
         if df.empty:
@@ -46,7 +49,7 @@ class Player():
         return round(float(df['contact_score'].iloc[0] * 100))
     
     def war(self):
-        df = data_loader.get_war(is_pitcher=False)
+        df = data_loader.get_war(self.year, is_pitcher=False)
         df['OVR'] = (df['WAR'].rank(pct=True) * 100)
         
         df = df.drop_duplicates(subset=['player_id'])

@@ -117,7 +117,7 @@ class Player():
         control = attr.get_control(data_loader.get_command(self.year))
         if control is None:
             return
-        control = control[control["player_id"] == self.player_id]
+        control = control[control["pitcher_id"] == self.player_id]
         if control.empty:
             return None
         # Returns percentile

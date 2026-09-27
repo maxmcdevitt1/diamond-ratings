@@ -55,8 +55,9 @@ def get_team(team_id, year):
     df = pd.DataFrame([dict(player) for player in roster])
 
     df = df[['id', 'status', 'primary_position']]
-    df = df.loc[df['status'].astype(str) == "code='A' description='Active'"]
-
+    
+    df = df.loc[df['status'].astype(str) != "code='RM' description='Reassigned to Minors'"]
+   
     is_pitcher = (
         df["primary_position"].astype(str)
         == "code='1' name='Pitcher' type='Pitcher' abbreviation='P'"
@@ -71,7 +72,27 @@ def get_batting():
     # STATCAST
 
     data = pd.read_csv(data_dir/'batting_data'/'stats.csv', encoding="utf-8-sig")
-    return pd.DataFrame(data)
+    
+    player_ids = data["player_id"].dropna().unique().tolist()
+
+    ids = playerid_reverse_lookup(
+        player_ids,
+        key_type="mlbam",
+    )
+    ids = ids[["key_mlbam", "key_bbref"]].rename(
+        columns={
+            "key_mlbam": "player_id",
+            "key_bbref": "bbref_id",
+        }
+    )
+
+    return data.merge(
+        ids,
+        on="player_id",
+        how="left",
+        validate="many_to_one",
+    )
+
 
 
 def get_all_pitchers():
@@ -94,34 +115,47 @@ def get_command(year):
     except FileNotFoundError:
         raise FileNotFoundError
 
-    df['player_name'] = normalize_name(df['pitcher'])
-    
-    df = df.drop(columns=['pitcher'])
-
-    players = get_player_map(year)
-
-    df = df.merge(players, on='player_name', how='left')
     return df
-
-
-
-def save_df(df, filename):
-    df.to_parquet(data_dir / filename)
 
 
 def get_war(year, is_pitcher):
     if is_pitcher:
-        df = pd.read_csv(data_dir/'pitching_data'/f'{year}_bref_pitching_war.csv')
+        path = (
+            data_dir / "pitching_data"
+            / f"{year}_bref_pitching_war.csv"
+        )
     else:
-        df = pd.read_csv(data_dir/'batting_data'/f'{year}_bref_hitting_war.csv')
-    
-    df['player_name'] = normalize_name(df['Player'])
-    df = df.drop(columns=['Player'])
+        path = (
+            data_dir / "batting_data"
+            / f"{year}_bref_hitting_war.csv"
+        )
 
-    players = get_player_map(year)
+    df = pd.read_csv(path)
 
-    df = df.merge(players, on='player_name', how='left')
-    return df
+    bbref_ids = df["Player-additional"].dropna().unique().tolist()
+
+    ids = playerid_reverse_lookup(
+        bbref_ids,
+        key_type="bbref",
+    )
+
+    ids = ids[["key_mlbam", "key_bbref"]].rename(
+        columns={
+            "key_mlbam": "player_id",
+            "key_bbref": "bbref_id",
+        }
+    )
+
+    df["player_name"] = normalize_name(df["Player"])
+    df = df.drop(columns=["Player"])
+
+    return df.merge(
+        ids,
+        left_on="Player-additional",
+        right_on="bbref_id",
+        how="left",
+        validate="many_to_one",
+    )
 
 
 def normalize_name(s):
@@ -145,12 +179,29 @@ def get_player_map(year):
         + df["use_last_name"].astype(str).str.strip()
     )
 
-    df["clean_name"] = normalize_name(df["name"])
+    ids = playerid_reverse_lookup(
+        df["id"].tolist(),
+        key_type="mlbam",
+    )
 
-    return df[["id", "clean_name"]].rename(
+    ids = ids[["key_mlbam", "key_bbref"]].rename(
+        columns={
+            "key_mlbam": "id",
+            "key_bbref": "bbref_id",
+        }
+    )
+
+    df = df.merge(
+        ids,
+        on="id",
+        how="left",
+        validate="one_to_one",
+    )
+
+    return df[["id", "bbref_id", "name"]].rename(
         columns={
             "id": "player_id",
-            "clean_name": "player_name"
+            "name": "player_name",
         }
     )
 
@@ -159,3 +210,6 @@ def load_final_df():
     pitcher = pd.read_parquet(data_dir/'pitcher.parquet')
 
     return batter, pitcher
+
+def save_df(df, filename):
+    df.to_parquet(data_dir / filename, index=False)
