@@ -38,4 +38,5 @@ def get_contact(df):
 
 def get_speed(df):
     df['speed'] = df['sprint_speed'].rank(pct=True)
+    df 
     return df

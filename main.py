@@ -10,7 +10,7 @@ def main():
     for team_name, team_id in data_loader.team_ids.items():
         batters, pitchers = team_rating.team(2026, team_id)
 
-        scores[team_name] = team_rating.team_rating(pitchers, batters)
+        scores[team_name] = team_rating.team_rating(2026, team_id)
 
         batters = batters.assign(team=team_name)
         pitchers = pitchers.assign(team=team_name)

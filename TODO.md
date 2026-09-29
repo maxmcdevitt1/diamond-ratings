@@ -14,6 +14,6 @@ polished visualizations and explainability
 
 add final score loading via the final parquet files
 
-add speed score 
+implement stolen bases to speed score 
 
 '''

@@ -2,7 +2,7 @@ import pandas as pd
 from . import pitcher_attributes as attr
 import numpy as np
 from . import data_loader
-from pybaseball import playerid_reverse_lookup  
+from pybaseball import playerid_reverse_lookup
 
 average_whiff_rate = {
     2016: 0.236,
