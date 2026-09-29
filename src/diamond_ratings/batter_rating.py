@@ -2,6 +2,8 @@ import pandas as pd
 from . import batter_attributes as attr
 from pybaseball import playerid_reverse_lookup
 from . import data_loader
+from statistics import NormalDist
+
 
 class Player():
 
@@ -49,10 +51,10 @@ class Player():
         return round(float(df['contact_score'].iloc[0] * 100))
     
     def war(self):
-        df = data_loader.get_war(self.year, is_pitcher=False)
-        df['OVR'] = (df['WAR'].rank(pct=True) * 100)
+        df = data_loader.get_war(self.year, is_pitcher=False, for_team=False)
         
         df = df.drop_duplicates(subset=['player_id'])
+        percentile = df["WAR"].rank(pct=True).clip(0.001, 0.999)
 
         df = df[df['player_id'] == self.player_id]
 
@@ -61,7 +63,12 @@ class Player():
             return None, None
         
         war = df['WAR'].iloc[0]
+
+        normal = NormalDist()
+        z = percentile.map(normal.inv_cdf, na_action="ignore")
+        df["OVR"] = ((75 + 10 * z).clip(50, 99).round().astype("Int64"))
         ovr = df['OVR'].iloc[0]
+        
         return float(war), float(ovr)
 
     def speed(self):
@@ -71,6 +78,8 @@ class Player():
             return None
         speed = speed['speed'].iloc[0] * 100
         return float(round(speed))
+
+    #def fielding(self):
 
 
     def ratings(self):

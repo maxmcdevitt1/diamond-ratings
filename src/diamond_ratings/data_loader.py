@@ -38,6 +38,19 @@ team_ids = {
     "Toronto Blue Jays": 141,
     "Washington Nationals": 120,
 }
+
+BREF_TEAM_IDS = {
+    "ARI": 109, "ATL": 144, "BAL": 110, "BOS": 111,
+    "CHC": 112, "CHW": 145, "CIN": 113, "CLE": 114,
+    "COL": 115, "DET": 116, "HOU": 117, "KCR": 118,
+    "LAA": 108, "LAD": 119, "MIA": 146, "MIL": 158,
+    "MIN": 142, "NYM": 121, "NYY": 147, "PHI": 143,
+    "PIT": 134, "SDP": 135, "SEA": 136, "SFG": 137,
+    "STL": 138, "TBR": 139, "TEX": 140, "TOR": 141,
+    "WSN": 120,
+    "OAK": 133,  # Earlier seasons
+    "ATH": 133,  # Same franchise ID
+}
 cache.enable()
 
 root = Path(__file__).resolve().parents[2]
@@ -70,28 +83,13 @@ def get_team(team_id, year):
 
 def get_batting():
     # STATCAST
+    oaa = pd.read_csv(data_dir/'batting_data'/'outs_above_average.csv')
+    batting = pd.read_csv(data_dir/'batting_data'/'stats.csv', encoding="utf-8-sig")
+    batting = batting.drop(columns=["n_outs_above_average"])
 
-    data = pd.read_csv(data_dir/'batting_data'/'stats.csv', encoding="utf-8-sig")
-    
-    player_ids = data["player_id"].dropna().unique().tolist()
+    df = batting.merge(oaa[["player_id", "year", "outs_above_average"]], how = 'left', on=['player_id', 'year'], validate='1:1')
+    return df
 
-    ids = playerid_reverse_lookup(
-        player_ids,
-        key_type="mlbam",
-    )
-    ids = ids[["key_mlbam", "key_bbref"]].rename(
-        columns={
-            "key_mlbam": "player_id",
-            "key_bbref": "bbref_id",
-        }
-    )
-
-    return data.merge(
-        ids,
-        on="player_id",
-        how="left",
-        validate="many_to_one",
-    )
 
 
 
@@ -102,10 +100,13 @@ def get_all_pitchers():
         else:
             all_pitchers = statcast(start_dt=f'{year}-03-27',end_dt=f'{year}-10-01')
             df = pd.DataFrame(all_pitchers)
+            df = df[df['game_type'] == 'R']
             df.to_parquet(data_dir/'pitching_data'/f'{year}.parquet')
         
 def get_season_pitching(year):
-    return pd.read_parquet(data_dir/"pitching_data"/f'{year}.parquet')
+    df = pd.read_parquet(data_dir/"pitching_data"/f'{year}.parquet')
+    df = df[df['game_type'] == 'R']
+    return df
 
 def get_command(year):
     try:
@@ -118,7 +119,7 @@ def get_command(year):
     return df
 
 
-def get_war(year, is_pitcher):
+def get_war(year, is_pitcher, for_team):
     if is_pitcher:
         path = (
             data_dir / "pitching_data"
@@ -133,6 +134,9 @@ def get_war(year, is_pitcher):
     df = pd.read_csv(path)
 
     bbref_ids = df["Player-additional"].dropna().unique().tolist()
+    if for_team is False:
+        df = df.drop_duplicates(subset=['Player-additional'])
+    df["team_id"] = df["Team"].map(BREF_TEAM_IDS).astype("Int64")
 
     ids = playerid_reverse_lookup(
         bbref_ids,
@@ -154,7 +158,7 @@ def get_war(year, is_pitcher):
         left_on="Player-additional",
         right_on="bbref_id",
         how="left",
-        validate="many_to_one",
+        validate="m:1"
     )
 
 

@@ -60,7 +60,7 @@ class Player():
         if velocity is None or velocity.empty:
             return None
 
-        return float(velocity.iloc[0])
+        return float((velocity.iloc[0]).round(2))
 
     def movement(self):
         mdf = attr.movement(self.df)
@@ -125,7 +125,7 @@ class Player():
         return float(control['score'].iloc[0])
     
     def war(self):
-        df = data_loader.get_war(self.year, is_pitcher=True)
+        df = data_loader.get_war(self.year, is_pitcher=True, for_team=False)
         df['OVR'] = (df['WAR'].rank(pct=True) * 100)
         
         df = df.drop_duplicates(subset=['player_id'])
@@ -137,7 +137,7 @@ class Player():
             return None, None
         war = df['WAR'].iloc[0]
         ovr = df['OVR'].iloc[0]
-        return float(war), float(ovr)
+        return float(war), float(ovr.round(2))
 
     def woba(self):
         woba = attr.calculate_woba(self.year, self.df)

@@ -29,7 +29,11 @@ def team(year, team_id):
         pd.concat(pitchers, ignore_index=True),
     )
 
-def team_rating(pitchers, batters):
-    a = pitchers['WAR'].sum()
-    b = batters['WAR'].sum()
-    return (a+b)
+def team_rating(year, team_id):
+    batters = data_loader.get_war(year, is_pitcher=False, for_team=True)
+    pitchers = data_loader.get_war(year, is_pitcher=True, for_team=True)
+    
+
+    batters = batters[batters['team_id'] == team_id]
+    pitchers = pitchers[pitchers['team_id'] == team_id]
+    return (batters['WAR'].sum() + pitchers['WAR'].sum()).round(2)
