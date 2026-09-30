@@ -91,8 +91,6 @@ def get_batting():
     return df
 
 
-
-
 def get_all_pitchers():
     for year in range(2021, 2027):
         if (data_dir/'pitching_data'/f'{year}.parquet').exists():

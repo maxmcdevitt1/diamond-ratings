@@ -3,6 +3,8 @@ from . import pitcher_attributes as attr
 import numpy as np
 from . import data_loader
 from pybaseball import playerid_reverse_lookup
+from statistics import NormalDist
+
 
 average_whiff_rate = {
     2016: 0.236,
@@ -54,13 +56,20 @@ class Player():
 
     def velocity(self):
         vdf = attr.velocity(self.df)
-        vdf["velo_percentile"] = vdf["differential"].rank(pct=True) * 100
-        velocity = vdf.loc[vdf["pitcher"] == self.player_id,"velo_percentile"]
-
-        if velocity is None or velocity.empty:
+        
+        percentile = (vdf["differential"].rank(pct=True) * 100).clip(0.0001, 0.999)
+        
+        velocity = vdf.loc[vdf["pitcher"] == self.player_id].dropna()
+        
+        if velocity.empty:
             return None
-
-        return float((velocity.iloc[0]).round(2))
+        
+        
+        normal = NormalDist()
+        z = percentile.map(normal.inv_cdf, na_action="ignore")
+        vdf["velo_score"] = ((75 + 10 * z).clip(50, 99).round().astype("Int64"))
+        
+        return float(round(velocity.iloc[0] * 100))
 
     def movement(self):
         mdf = attr.movement(self.df)
@@ -126,7 +135,7 @@ class Player():
     
     def war(self):
         df = data_loader.get_war(self.year, is_pitcher=True, for_team=False)
-        df['OVR'] = (df['WAR'].rank(pct=True) * 100)
+        percentile = (df['WAR'].rank(pct=True) * 100).clip(0.001, 0.999)
         
         df = df.drop_duplicates(subset=['player_id'])
 
@@ -135,9 +144,14 @@ class Player():
         # Keeps '2TM and combined season war
         if df.empty:
             return None, None
+        
+        normal = NormalDist()
+        z = percentile.map(normal.inv_cdf, na_action="ignore")
+        df["OVR"] = ((75 + 10 * z).clip(50, 99).round().astype("Int64"))
+
         war = df['WAR'].iloc[0]
         ovr = df['OVR'].iloc[0]
-        return float(war), float(ovr.round(2))
+        return float(war), float(ovr)
 
     def woba(self):
         woba = attr.calculate_woba(self.year, self.df)

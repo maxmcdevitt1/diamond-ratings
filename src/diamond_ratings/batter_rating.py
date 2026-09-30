@@ -44,11 +44,12 @@ class Player():
     def contact(self):
         df = attr.get_contact(self.df)
 
-        df = df.loc[df['player_id'] == self.player_id]
+        df = df.loc[df['player_id'] == self.player_id, 'contact_score'].dropna()
+        
         if df.empty:
             return None
         
-        return round(float(df['contact_score'].iloc[0] * 100))
+        return round(float(df.iloc[0] * 100))
     
     def war(self):
         df = data_loader.get_war(self.year, is_pitcher=False, for_team=False)
@@ -73,11 +74,11 @@ class Player():
 
     def speed(self):
         speed = attr.get_speed(self.df)
-        speed = speed[speed['player_id'] == self.player_id]
+        speed = speed.loc[speed['player_id'] == self.player_id, speed].dropna()
         if speed.empty:
             return None
-        speed = speed['speed'].iloc[0] * 100
-        return float(round(speed))
+
+        return float(round(speed.iloc[0] * 100))
 
     #def fielding(self):
 

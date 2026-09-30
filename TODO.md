@@ -12,8 +12,9 @@ database/API layer
 
 polished visualizations and explainability
 
-add final score loading via the final parquet files
 
-implement stolen bases to speed score 
 
+1. implement stolen bases to speed score 
+2. Next biggest step is to refactor the Player classes from looping through each player to calculating each player
+in the dataframe singularly then filtering through the data. -> create new branch for this.
 '''
