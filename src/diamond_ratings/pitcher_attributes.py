@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 from .woba_weights import WOBA_WEIGHTS
 
-
-
 def velocity(season):
     fastballs = ('SI', 'FF', 'FC')
     fb = season[season['pitch_type'].isin(fastballs)]
@@ -15,17 +13,17 @@ def velocity(season):
     fb["differential"] = (fb["avg velo"] - fb["Leage_AVG_Velo"]).round(4)
     fb["count"] = fb.groupby("pitcher")["avg velo"].transform("count")
     minimum = fb.groupby("pitcher")["count"].transform("min")
-    #fb=fb[minimum>100]
+    fb=fb[minimum>100]
     
-    fb = fb[["pitcher", "pitch_type", "Leage_AVG_Velo", "avg velo", "differential"]]
+    fb = fb[["pitcher", "player_name", "pitch_type", "Leage_AVG_Velo", "avg velo", "differential"]]
     fb=fb.drop_duplicates(subset=["pitcher"])
 
-    
     return fb
 
-def movement(season):
-    df = season.copy()
-
+def movement(df):
+    df = df[['pitch_type', 'game_date', 'release_speed', 
+    'player_name', 'pitcher', 'pfx_x', 'pfx_z']]
+    
     categories = {
         "fastball": ["FF", "SI", "FC"],
         "offspeed": ["CH", "FS", "FO", "SC"],
@@ -37,23 +35,55 @@ def movement(season):
         for category, pitches in categories.items()
         for pitch in pitches
     }
-    df["pitch_category"] = df["pitch_type"].map(pitch_to_cat)
+    df["pitch_category  "] = df["pitch_type"].map(pitch_to_cat)
+
+    df["induced_magnitude"] = (np.hypot(df["pfx_x"], df["pfx_z"]) * 12)
 
 
-    df["induced_magnitude"] = (np.hypot(df["pfx_x"], df["pfx_z"]) * 12).round(4)
+    # Use the same season's pitches to establish each pitch-type baseline.
+    df["type_baseline"] = (
+        df.groupby("pitch_type")["induced_magnitude"]
+        .transform("mean")
+    )
 
-    df["mean_movement"] = df.groupby(["pitcher", "pitch_category"])["induced_magnitude"].transform("median").round(4)
+    df["movement_above_average"] = (
+        df["induced_magnitude"] - df["type_baseline"]
+    )
 
-    df["league_avg_movement"] = df.groupby("pitch_category")["induced_magnitude"].transform("median").round(4)
+    df["pitch_count"] = (
+        df.groupby(["pitcher", "pitch_category"])
+        ["induced_magnitude"]
+        .transform("count")
+    )
 
-    df["count"] = df.groupby(["pitcher", "pitch_type"])["induced_magnitude"].transform("count")
+    df = (df.loc[df["pitch_count"] > 50])
 
-    minimum = df.groupby("pitcher")["count"].transform("min")
+    df = df.groupby(['pitcher', 'pitch_category'], as_index=False).agg(
+        player_name=('player_name', 'first'),
+        avg_movement = ('movement_above_average', 'mean')
+        )
+
+    weights = {
+        "breaking": 0.60,
+        "offspeed": 0.60,
+        "fastball": 0.10,
+        "knuckle" : 0.80
+    }
+
+    df['weights'] = df['pitch_category'].map(weights)
+    df = df.dropna(subset=['avg_movement', 'weights'])
+
+    df['movement'] = df['avg_movement'] * df['weights']
     
-    df = df[["pitcher", "pitch_category", "pitch_type", "induced_magnitude", "mean_movement", "league_avg_movement"]]
+    df = df.groupby(['pitcher'], as_index=False).agg(
+        player_name=('player_name', 'first'),
+        weighted_total=('movement', 'sum'),
+        total_weight=('weights', 'sum'))
+    
+    df['scores'] = df['weighted_total'] / df['total_weight']
+    df['score_percentile'] = ((df['scores'].rank(pct=True) * 100).round())
 
-    df["differential"] = (df["mean_movement"] - df["league_avg_movement"]).round(4)
-    return df
+    return df[['player_name', 'pitcher','scores', 'score_percentile']]
 
 
 

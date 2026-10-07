@@ -13,8 +13,6 @@ database/API layer
 polished visualizations and explainability
 
 
-
 1. implement stolen bases to speed score 
 2. Next biggest step is to refactor the Player classes from looping through each player to calculating each player
 in the dataframe singularly then filtering through the data. -> create new branch for this.
-'''

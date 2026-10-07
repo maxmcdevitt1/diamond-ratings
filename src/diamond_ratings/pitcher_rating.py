@@ -84,7 +84,7 @@ class Player():
 
         movement = (
             mdf.loc[
-                mdf["pitch_count"] > 50,
+                mdf["pitch_count"] > 75,
                 ["pitcher", "pitch_category", "mean_movement"],
             ]
             .drop_duplicates(["pitcher", "pitch_category"])
