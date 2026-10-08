@@ -21,8 +21,7 @@ class Player():
 
         self.year = year
         self.player_id = player_id
-        self.df = data_loader.get_batting()
-        self.df = self.df.loc[self.df['year'] == year]
+        self.df = data_loader.get_season_batting(year)
 
 
     def power(self):

@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from . import data_loader
 from .woba_weights import WOBA_WEIGHTS
 
 def get_power(df):
@@ -9,12 +8,24 @@ def get_power(df):
     # ISO
     
     df = df.rename(columns={"avg_best_speed": "ev50", "barrel_batted_rate":"barrel%", "isolated_power":'iso'})
+    
 
     df = df[['last_name, first_name', 'player_id', 'year', 'ev50', 'iso', 'barrel%']]
 
-    df['ev50_score'] = (df['ev50'].rank(pct=True)).round(3)
-    df['barrel%_score'] = (df['barrel%'].rank(pct=True)).round(3)
-    df['iso_score'] = (df['iso'].rank(pct=True)).round(3)
+    df['iso'] = df['iso'] * 1000
+    df['barrel%'] = df['barrel%'] * 10
+
+    df['ev50_score'] = ((df['ev50'].rank(pct=True)) * 100).round(4)
+    df['barrel%_score'] = ((df['barrel%'].rank(pct=True)) * 100).round(4)
+    df['iso_score'] = (df['iso'].rank(pct=True) * 100).round(4)
+    
+    iso = df['iso_score']
+
+    barrel_pct = df['barrel%_score']
+
+    ev50 = df['ev50_score']
+
+    df['score'] = round((iso + barrel_pct + ev50)/3)
 
     return df
 
@@ -38,5 +49,4 @@ def get_contact(df):
 
 def get_speed(df):
     df['speed'] = df['sprint_speed'].rank(pct=True)
-    df 
     return df

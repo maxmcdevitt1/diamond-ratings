@@ -5,6 +5,7 @@ src/diamond_ratings/__init__.py
 src/diamond_ratings/batter_attributes.py
 src/diamond_ratings/batter_rating.py
 src/diamond_ratings/data_loader.py
+src/diamond_ratings/get_scores.py
 src/diamond_ratings/pitcher_attributes.py
 src/diamond_ratings/pitcher_rating.py
 src/diamond_ratings/team_rating.py

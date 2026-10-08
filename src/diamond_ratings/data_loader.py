@@ -81,7 +81,7 @@ def get_team(team_id, year):
     return pitchers, batters
 
 
-def get_batting():
+def get_season_batting(year):
     # STATCAST
     oaa = pd.read_csv(data_dir/'batting_data'/'outs_above_average.csv')
     batting = pd.read_csv(data_dir/'batting_data'/'stats.csv', encoding="utf-8-sig")

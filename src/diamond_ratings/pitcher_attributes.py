@@ -39,8 +39,6 @@ def movement(df):
 
     df["induced_magnitude"] = (np.hypot(df["pfx_x"], df["pfx_z"]) * 12)
 
-
-    # Use the same season's pitches to establish each pitch-type baseline.
     df["type_baseline"] = (
         df.groupby("pitch_type")["induced_magnitude"]
         .transform("mean")
@@ -51,12 +49,12 @@ def movement(df):
     )
 
     df["pitch_count"] = (
-        df.groupby(["pitcher", "pitch_category"])
+        df.groupby(["pitcher"])
         ["induced_magnitude"]
         .transform("count")
     )
 
-    df = (df.loc[df["pitch_count"] > 50])
+    df = (df.loc[df["pitch_count"] > 350])
 
     df = df.groupby(['pitcher', 'pitch_category'], as_index=False).agg(
         player_name=('player_name', 'first'),
