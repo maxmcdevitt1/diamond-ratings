@@ -153,7 +153,7 @@ OVR is a weighted average of a player's attribute ratings and his Baseball-Refer
 | Movement | 10% | | | |
 | Velocity | 10% | | | |
 
-If a player is missing a rating, it drops out and the remaining weights are rescaled. A pitcher who qualifies for only one or two attributes therefore gets an OVR based on very little, so treat those with caution. The weights are set by `PITCHER_WEIGHTS` and `BATTER_WEIGHTS` in [get_scores.py](src/diamond_ratings/get_scores.py).
+If a player is missing a rating, it drops out and the remaining weights are rescaled. A player needs at least three attributes (not counting WAR) to get an OVR, so a pitcher who has thrown too little to qualify for more than two is listed without one. The weights and that minimum are set by `PITCHER_WEIGHTS`, `BATTER_WEIGHTS`, and `MIN_ATTRIBUTES` in [get_scores.py](src/diamond_ratings/get_scores.py).
 
 ### How should I read the scores?
 

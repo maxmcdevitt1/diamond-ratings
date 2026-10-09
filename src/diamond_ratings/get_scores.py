@@ -22,6 +22,7 @@ BATTER_WEIGHTS = {
     'WAR': 0.30,
     'speed': 0.10,
 }
+MIN_ATTRIBUTES = 3  # attributes (not counting WAR) needed for an OVR
 
 def pitcher_ratings(year):
     """One row per pitcher. Each attribute is 50-99 against that attribute's pool."""
@@ -104,7 +105,10 @@ def overall(df, weights):
     total = parts.mul(weights).sum(axis=1)
     available = parts.notna().mul(weights).sum(axis=1)
 
-    return to_rating(total / available)
+    # too few attributes to say anything about the player as a whole
+    rated = parts.drop(columns='WAR').notna().sum(axis=1) >= MIN_ATTRIBUTES
+
+    return to_rating((total / available).where(rated))
 
 
 def _war_by_id(war):
