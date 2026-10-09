@@ -1,5 +1,0 @@
-numpy
-pandas
-pyarrow
-pybaseball
-python-mlb-statsapi

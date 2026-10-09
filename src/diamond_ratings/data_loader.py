@@ -1,9 +1,10 @@
-from pybaseball import  playerid_lookup, statcast, playerid_reverse_lookup
+from datetime import date, timedelta
+
+from pybaseball import statcast, playerid_reverse_lookup
 import pandas as pd
 from pybaseball import cache
 from pathlib import Path
 from mlbstatsapi import Mlb
-import re
 
 
 team_ids = {
@@ -53,6 +54,8 @@ BREF_TEAM_IDS = {
 }
 cache.enable()
 
+FIRST_SEASON = 2021
+
 root = Path(__file__).resolve().parents[2]
 data_dir = root/'data'
 
@@ -65,18 +68,16 @@ def get_team(team_id, year):
 
     roster = mlb.get_team_roster(team_id, rosterType='40Man', season=year)
 
-    df = pd.DataFrame([dict(player) for player in roster])
-
-    df = df[['id', 'status', 'primary_position']]
-    
-    df = df.loc[df['status'].astype(str) != "code='RM' description='Reassigned to Minors'"]
-   
-    is_pitcher = (
-        df["primary_position"].astype(str)
-        == "code='1' name='Pitcher' type='Pitcher' abbreviation='P'"
-    )
-    pitchers = df.loc[is_pitcher, "id"].to_list()
-    batters = df.loc[~is_pitcher, "id"].to_list()
+    pitchers, batters = [], []
+    for player in roster:
+        if player.status.code == 'RM':  # reassigned to minors
+            continue
+        position = player.primary_position.code
+        # two-way players ('Y') pitch and hit, so they go in both lists
+        if position in ('1', 'Y'):
+            pitchers.append(player.id)
+        if position != '1':
+            batters.append(player.id)
 
     return pitchers, batters
 
@@ -92,30 +93,55 @@ def get_season_batting(year):
     return df
 
 
-def get_all_pitchers():
-    for year in range(2021, 2027):
-        if (data_dir/'pitching_data'/f'{year}.parquet').exists():
+def download_statcast(start, end):
+    df = statcast(start_dt=str(start), end_dt=str(end))
+    if df.empty:
+        return df
+    return df[df['game_type'] == 'R']
+
+
+def get_all_pitchers(years=None):
+    """Download each Statcast season, or the days an existing file is missing."""
+    mlb = Mlb()
+    yesterday = date.today() - timedelta(days=1)  # today's games may still be in progress
+    if years is None:
+        years = range(FIRST_SEASON, date.today().year + 1)
+
+    for year in years:
+        path = data_dir/'pitching_data'/f'{year}.parquet'
+        season = mlb.get_season(year)
+        start = date.fromisoformat(season.regular_season_start_date)
+        end = min(date.fromisoformat(season.regular_season_end_date), yesterday)
+
+        if not path.exists():
+            if start <= end:
+                download_statcast(start, end).to_parquet(path)
             continue
-        else:
-            all_pitchers = statcast(start_dt=f'{year}-03-27',end_dt=f'{year}-10-01')
-            df = pd.DataFrame(all_pitchers)
-            df = df[df['game_type'] == 'R']
-            df.to_parquet(data_dir/'pitching_data'/f'{year}.parquet')
-        
+
+        have = pd.to_datetime(pd.read_parquet(path, columns=['game_date'])['game_date']).dt.date
+        gaps = [
+            (start, have.min() - timedelta(days=1)),
+            (have.max() + timedelta(days=1), end),
+        ]
+        new = [download_statcast(first, last) for first, last in gaps if first <= last]
+        new = [df for df in new if not df.empty]
+        if not new:
+            continue
+
+        df = pd.concat([pd.read_parquet(path), *new], ignore_index=True)
+        df = df.sort_values(
+            ['game_date', 'game_pk', 'at_bat_number', 'pitch_number'], ascending=False
+        )
+        df.to_parquet(path, index=False)
+
+
 def get_season_pitching(year):
     df = pd.read_parquet(data_dir/"pitching_data"/f'{year}.parquet')
     df = df[df['game_type'] == 'R']
     return df
 
 def get_command(year):
-    try:
-        y =  pd.read_csv(data_dir/'pitching_data'/f'{year}command.csv', encoding="utf-8-sig")
-        df = pd.DataFrame(y)
-        
-    except FileNotFoundError:
-        raise FileNotFoundError
-
-    return df
+    return pd.read_csv(data_dir/'pitching_data'/f'{year}command.csv', encoding="utf-8-sig")
 
 
 def get_war(year, is_pitcher, for_team):
@@ -149,9 +175,6 @@ def get_war(year, is_pitcher, for_team):
         }
     )
 
-    df["player_name"] = normalize_name(df["Player"])
-    df = df.drop(columns=["Player"])
-
     return df.merge(
         ids,
         left_on="Player-additional",
@@ -160,59 +183,6 @@ def get_war(year, is_pitcher, for_team):
         validate="m:1"
     )
 
-
-def normalize_name(s):
-    return (
-        s.astype(str)
-         .str.replace(r"[*#]", "", regex=True)
-         .str.replace(".", "", regex=False)
-         .str.strip()
-         .str.lower()
-    )
-
-def get_player_map(year):
-    mlb = Mlb()
-    players = mlb.get_people(season=str(year))
-
-    df = pd.DataFrame([dict(p) for p in players])
-
-    df["name"] = (
-        df["use_name"].astype(str).str.strip()
-        + " "
-        + df["use_last_name"].astype(str).str.strip()
-    )
-
-    ids = playerid_reverse_lookup(
-        df["id"].tolist(),
-        key_type="mlbam",
-    )
-
-    ids = ids[["key_mlbam", "key_bbref"]].rename(
-        columns={
-            "key_mlbam": "id",
-            "key_bbref": "bbref_id",
-        }
-    )
-
-    df = df.merge(
-        ids,
-        on="id",
-        how="left",
-        validate="one_to_one",
-    )
-
-    return df[["id", "bbref_id", "name"]].rename(
-        columns={
-            "id": "player_id",
-            "name": "player_name",
-        }
-    )
-
-def load_final_df():
-    batter = pd.read_parquet(data_dir/'batter.parquet')
-    pitcher = pd.read_parquet(data_dir/'pitcher.parquet')
-
-    return batter, pitcher
 
 def save_df(df, filename):
     df.to_parquet(data_dir / filename, index=False)

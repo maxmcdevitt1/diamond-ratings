@@ -28,7 +28,7 @@ The project rates every pitcher and hitter in a season on a 50–99 scale, filte
 | Hitter ratings | Power, contact, speed, and OVR |
 | Team ratings | Baseball-Reference WAR produced for each team, rated 50–99 against the other teams |
 | Predictions | Planned |
-| Tests | Not written yet |
+| Tests | Unit tests for the scale, attribute, and team calculations |
 
 ## How it Works
 
@@ -89,6 +89,13 @@ python main.py
 
 The package reads from the `data/` folder of the repository, so it has to be installed in editable mode from a clone; a standalone wheel install will not find the data.
 
+To run the tests, which use small made-up tables and need neither the data files nor a connection:
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
+
 ## Data
 
 ### Layout
@@ -102,7 +109,7 @@ The package reads from the `data/` folder of the repository, so it has to be ins
 | `data/batting_data/stats.csv` | 2021–2026 | Baseball Savant | Season batting, expected, and batted-ball statistics |
 | `data/batting_data/outs_above_average.csv` | 2021–2026 | Baseball Savant | Outs above average |
 
-`data_loader.get_all_pitchers()` downloads any missing Statcast season, using March 27 through October 1 of each year. The fixed window can omit games outside those dates, and an existing file is not refreshed as a season progresses.
+`data_loader.get_all_pitchers()` downloads any missing Statcast season from 2021 through the current year, using the regular-season dates from the MLB Stats API. For a season that already has a file it downloads only the days before the file's first game or after its last, through yesterday, so running it again tops up a season in progress. Pass a list of years, such as `get_all_pitchers([2026])`, to limit it to those seasons.
 
 **Player matching:** MLBAM IDs are the primary identifier. Statcast uses the `pitcher` field, Baseball Savant and OpenCommand use `player_id` / `pitcher_id`, and Baseball-Reference IDs are converted to MLBAM IDs through pybaseball's lookup table. A player missing from that table gets no WAR, and his OVR is built from his attributes alone.
 
@@ -114,7 +121,7 @@ The package reads from the `data/` folder of the repository, so it has to be ins
 | `data/pitcher.parquet` | `player_id`, `name`, `year`, `velocity`, `movement`, `whiff`, `woba`, `control`, `WAR`, `OVR`, `team` |
 | `data/teams.parquet` | `team`, `WAR`, `rating` |
 
-Only players who qualify for at least one attribute appear. A pitcher who qualifies for some attributes but not others has empty values for the ones he misses.
+Only players who qualify for at least one attribute appear. A pitcher who qualifies for some attributes but not others has empty values for the ones he misses. Rostered pitchers go in the pitcher file and everyone else in the hitter file; a two-way player appears in both.
 
 ## Topics
 
