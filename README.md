@@ -14,7 +14,7 @@
 
 **Diamond Ratings** is a Python project that converts MLB player data into video game-style **player ratings**.
 
-The project rates every pitcher and hitter in a season on a 50–99 scale, filters those league-wide ratings down to each team's 40-man roster, and rates each team on the same scale from the WAR its players produced. Pitcher attributes are velocity, movement, whiff rate, wOBA allowed, and control; hitter attributes are power, contact, and speed. Both get an overall (OVR) derived from WAR. The long-term goal is to use these ratings alongside team statistics to predict final team performance and season results.
+The project rates every pitcher and hitter in a season on a 50–99 scale, filters those league-wide ratings down to each team's 40-man roster, and rates each team on the same scale from the WAR its players produced. Pitcher attributes are velocity, movement, whiff rate, wOBA allowed, and control; hitter attributes are power, contact, and speed. Both get an overall (OVR) that is a weighted combination of those attributes and WAR. The long-term goal is to use these ratings alongside team statistics to predict final team performance and season results.
 
 ## Project status
 
@@ -104,7 +104,7 @@ The package reads from the `data/` folder of the repository, so it has to be ins
 
 `data_loader.get_all_pitchers()` downloads any missing Statcast season, using March 27 through October 1 of each year. The fixed window can omit games outside those dates, and an existing file is not refreshed as a season progresses.
 
-**Player matching:** MLBAM IDs are the primary identifier. Statcast uses the `pitcher` field, Baseball Savant and OpenCommand use `player_id` / `pitcher_id`, and Baseball-Reference IDs are converted to MLBAM IDs through pybaseball's lookup table. A player missing from that table gets no WAR or OVR.
+**Player matching:** MLBAM IDs are the primary identifier. Statcast uses the `pitcher` field, Baseball Savant and OpenCommand use `player_id` / `pitcher_id`, and Baseball-Reference IDs are converted to MLBAM IDs through pybaseball's lookup table. A player missing from that table gets no WAR, and his OVR is built from his attributes alone.
 
 ### Output
 
@@ -127,7 +127,6 @@ Only players who qualify for at least one attribute appear. A pitcher who qualif
 | **Whiff** | Misses divided by swings, using the event groups defined in `get_whif()` | 100 swings |
 | **wOBA allowed** | Weighted plate-appearance outcomes using that season's wOBA weights; lower is better | More than 200 pitches |
 | **Control** | OpenCommand's `inferred_in` for `ALL` pitches; lower is better | More than 200 pitches |
-| **OVR** | Baseball-Reference pitching WAR | None |
 
 The movement score weights pitch categories **0.6 breaking**, **0.6 offspeed**, **0.1 fastball**, and **0.8 knuckleball**. A pitcher who doesn't throw a category is scored on the ones he does throw.
 
@@ -140,13 +139,27 @@ Hitters need more than 200 plate appearances to receive attribute ratings.
 | **Power** | Average of ISO, barrel rate, and EV50, each scaled from 0 to 1 across qualified hitters |
 | **Contact** | 75% the average of batting average and expected batting average, 25% contact rate (100 minus whiff percentage) |
 | **Speed** | Sprint speed |
-| **OVR** | Baseball-Reference hitting WAR |
+
+### What goes into OVR?
+
+OVR is a weighted average of a player's attribute ratings and his Baseball-Reference WAR, with WAR first rated 50–99 against the same group of players. The result is ranked again and put back on the 50–99 scale, so OVR spreads out the same way the individual attributes do.
+
+| Pitchers | Weight | | Hitters | Weight |
+|---|---|---|---|---|
+| wOBA allowed | 25% | | Contact | 30% |
+| Whiff | 20% | | Power | 30% |
+| WAR | 20% | | WAR | 30% |
+| Control | 15% | | Speed | 10% |
+| Movement | 10% | | | |
+| Velocity | 10% | | | |
+
+If a player is missing a rating, it drops out and the remaining weights are rescaled. A pitcher who qualifies for only one or two attributes therefore gets an OVR based on very little, so treat those with caution. The weights are set by `PITCHER_WEIGHTS` and `BATTER_WEIGHTS` in [get_scores.py](src/diamond_ratings/get_scores.py).
 
 ### How should I read the scores?
 
 Every attribute is ranked against the other qualified players in that season, and the ranking is mapped onto a bell curve centered on **75** with a standard deviation of 10, limited to **50–99**. A 75 is the league median for that attribute, an 85 is roughly the 84th percentile, and a 95 is roughly the 98th.
 
-OVR is built from WAR, which accumulates with playing time, so it reflects how much a player has contributed over the season rather than how good he is per game.
+The WAR part of OVR accumulates with playing time, so it rewards how much a player has contributed over the season as well as how good he is per game.
 
 **Team ratings** start from the sum of the WAR each player produced while on that team, so a traded player's WAR is split between his clubs. That total is then ranked against the other teams and put on the same 50–99 scale. With only 30 teams the steps are coarse: the top team is always 99 and the bottom team lands at 57.
 

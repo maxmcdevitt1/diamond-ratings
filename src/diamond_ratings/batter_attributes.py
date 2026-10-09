@@ -56,6 +56,4 @@ def get_speed(df):
 
 def war(year):
     df = load.get_war(year, is_pitcher=False, for_team=False)
-    df = df.drop_duplicates(subset=['player_id']).copy()
-    df['OVR'] = to_rating(df['WAR'])
-    return df
+    return df.drop_duplicates(subset=['player_id']).copy()
