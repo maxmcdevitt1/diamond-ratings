@@ -10,7 +10,7 @@ from mlbstatsapi import Mlb
 team_ids = {
     "Arizona Diamondbacks": 109,
     "Atlanta Braves": 144,
-    "Athletics": 133,
+    "Oakland Athletics": 133,
     "Baltimore Orioles": 110,
     "Boston Red Sox": 111,
     "Chicago Cubs": 112,
