@@ -4,7 +4,7 @@ from .woba_weights import WOBA_WEIGHTS
 
 def velocity(season):
     fastballs = ('SI', 'FF', 'FC')
-    fb = season[season['pitch_type'].isin(fastballs)]
+    fb = season[season['pitch_type'].isin(fastballs)].copy()
     
     fb["category"] = "fastball"
     fb["Leage_AVG_Velo"] = fb.groupby("category")["release_speed"].transform("median").round(4)
@@ -22,7 +22,7 @@ def velocity(season):
 
 def movement(df):
     df = df[['pitch_type', 'game_date', 'release_speed', 
-    'player_name', 'pitcher', 'pfx_x', 'pfx_z']]
+    'player_name', 'pitcher', 'pfx_x', 'pfx_z']].copy()
     
     categories = {
         "fastball": ["FF", "SI", "FC"],
@@ -35,7 +35,7 @@ def movement(df):
         for category, pitches in categories.items()
         for pitch in pitches
     }
-    df["pitch_category  "] = df["pitch_type"].map(pitch_to_cat)
+    df["pitch_category"] = df["pitch_type"].map(pitch_to_cat)
 
     df["induced_magnitude"] = (np.hypot(df["pfx_x"], df["pfx_z"]) * 12)
 
@@ -91,7 +91,7 @@ def create_woba(season):
     count = df.groupby('pitcher').size()
     df["total_pitches"] = df["pitcher"].map(count)
 
-    df = df[df['total_pitches'] > 200]
+    df = df[df['total_pitches'] > 200].copy()
 
 
     #####   BB AND IBB
@@ -197,27 +197,25 @@ def calculate_woba(year, season):
 
     return df
 
-def get_whif(season):
-    df = season.copy()
-    
-    swings = ('foul_tip', 'hit_into_play', 
+def get_whif(season, min_swings=100):
+    swings = ('foul_tip', 'hit_into_play',
               'foul', 'swinging_strike_blocked',
               'swinging_strike', 'bunt_foul_tip',
-              'foul_bunt','missed_bunt')
+              'foul_bunt', 'missed_bunt')
 
     misses = ('swinging_strike_blocked',
-              'swinging_strike','missed_bunt', 'foul_tip')
+              'swinging_strike', 'missed_bunt', 'foul_tip')
 
-    swing = df[df['description'].isin(swings)].groupby('pitcher').size()
-    miss = df[df['description'].isin(misses)].groupby('pitcher').size()
+    counts = pd.DataFrame({
+        'pitcher': season['pitcher'],
+        'swings': season['description'].isin(swings),
+        'misses': season['description'].isin(misses),
+    }).groupby('pitcher').sum()
 
-    df['swings'] = df['pitcher'].map(swing)
-    df['misses'] = df['pitcher'].map(miss)
+    counts = counts[counts['swings'] >= min_swings]
+    counts['whiff_rate'] = counts['misses'] / counts['swings']
 
-    df['whiff_rate'] = (df['misses'] / df['swings'])
-    whiff = df[['pitcher', 'whiff_rate']].drop_duplicates().dropna()
-
-    return whiff
+    return counts[['whiff_rate']].reset_index()
 
 def get_control(season):
     if season is None:
@@ -231,6 +229,3 @@ def get_control(season):
     df = df[['pitcher_id', 'score', 'n']]
 
     return df
-
-
-    

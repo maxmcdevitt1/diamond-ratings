@@ -1,17 +1,9 @@
 # batter_attributes.py
 import pandas as pd
-from statistics import NormalDist
 from . import data_loader as load
+from .scale import to_rating
 
 MIN_PA = 200
-_NORMAL = NormalDist()
-
-
-def to_rating(values, mean=75, sd=10, lo=50, hi=99):
-    """Convert raw values to a 50-99 rating via percentile -> normal quantile."""
-    pct = values.rank(pct=True).clip(0.001, 0.999)  # clip avoids inv_cdf(1.0) = error
-    z = pct.map(_NORMAL.inv_cdf, na_action='ignore')
-    return (mean + sd * z).clip(lo, hi).round().astype('Int64')
 
 
 def normalize(values):
@@ -65,6 +57,5 @@ def get_speed(df):
 def war(year):
     df = load.get_war(year, is_pitcher=False, for_team=False)
     df = df.drop_duplicates(subset=['player_id']).copy()
-    df['OVR'] = round(to_rating(df['WAR']))
-    
+    df['OVR'] = to_rating(df['WAR'])
     return df
