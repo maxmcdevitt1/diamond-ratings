@@ -1,4 +1,7 @@
+import pandas as pd
+
 from . import data_loader
+from .scale import to_rating
 
 
 def team(year, team_id, batters, pitchers):
@@ -10,7 +13,14 @@ def team(year, team_id, batters, pitchers):
         pitchers[pitchers['player_id'].isin(pitcher_ids)],
     )
 
-def team_rating(team_id, batter_war, pitcher_war):
-    batters = batter_war[batter_war['team_id'] == team_id]
-    pitchers = pitcher_war[pitcher_war['team_id'] == team_id]
-    return (batters['WAR'].sum() + pitchers['WAR'].sum()).round(2)
+def team_ratings(batter_war, pitcher_war):
+    """Total WAR per team and its 50-99 rating against the other teams."""
+    war = (
+        pd.concat([batter_war, pitcher_war])
+        .groupby('team_id')['WAR']
+        .sum()
+        .round(2)
+        .reset_index()
+    )
+    war['rating'] = to_rating(war['WAR'])
+    return war

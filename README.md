@@ -14,7 +14,7 @@
 
 **Diamond Ratings** is a Python project that converts MLB player data into video game-style **player ratings**.
 
-The project rates every pitcher and hitter in a season on a 50–99 scale, filters those league-wide ratings down to each team's 40-man roster, and scores each team by the WAR its players produced. Pitcher attributes are velocity, movement, whiff rate, wOBA allowed, and control; hitter attributes are power, contact, and speed. Both get an overall (OVR) derived from WAR. The long-term goal is to use these ratings alongside team statistics to predict final team performance and season results.
+The project rates every pitcher and hitter in a season on a 50–99 scale, filters those league-wide ratings down to each team's 40-man roster, and rates each team on the same scale from the WAR its players produced. Pitcher attributes are velocity, movement, whiff rate, wOBA allowed, and control; hitter attributes are power, contact, and speed. Both get an overall (OVR) derived from WAR. The long-term goal is to use these ratings alongside team statistics to predict final team performance and season results.
 
 ## Project status
 
@@ -26,7 +26,7 @@ The project rates every pitcher and hitter in a season on a 50–99 scale, filte
 | Data loading | Statcast downloads, MLB roster lookups, and local Parquet/CSV readers |
 | Pitcher ratings | Velocity, movement, whiff, wOBA allowed, control, and OVR |
 | Hitter ratings | Power, contact, speed, and OVR |
-| Team ratings | Sum of Baseball-Reference WAR produced for each team |
+| Team ratings | Baseball-Reference WAR produced for each team, rated 50–99 against the other teams |
 | Predictions | Planned |
 | Tests | Not written yet |
 
@@ -38,7 +38,7 @@ The project rates every pitcher and hitter in a season on a 50–99 scale, filte
 - Calculate every attribute once for the whole league, one row per player.
 - Convert each attribute to a 50–99 rating against the other players in that season.
 - Retrieve each team's 40-man roster and filter the league-wide ratings down to it.
-- Sum each team's WAR into a team rating.
+- Sum each team's WAR and rate it against the other 29 teams.
 - Save the results as `batter.parquet`, `pitcher.parquet`, and `teams.parquet`.
 
 The broader project direction is described in [objective.md](objective.md).
@@ -112,7 +112,7 @@ The package reads from the `data/` folder of the repository, so it has to be ins
 |---|---|
 | `data/batter.parquet` | `player_id`, `name`, `year`, `contact`, `power`, `speed`, `WAR`, `OVR`, `team` |
 | `data/pitcher.parquet` | `player_id`, `name`, `year`, `velocity`, `movement`, `whiff`, `woba`, `control`, `WAR`, `OVR`, `team` |
-| `data/teams.parquet` | `team`, `rating` |
+| `data/teams.parquet` | `team`, `WAR`, `rating` |
 
 Only players who qualify for at least one attribute appear. A pitcher who qualifies for some attributes but not others has empty values for the ones he misses.
 
@@ -148,7 +148,7 @@ Every attribute is ranked against the other qualified players in that season, an
 
 OVR is built from WAR, which accumulates with playing time, so it reflects how much a player has contributed over the season rather than how good he is per game.
 
-**Team ratings** are the sum of the WAR each player produced while on that team, so a traded player's WAR is split between his clubs.
+**Team ratings** start from the sum of the WAR each player produced while on that team, so a traded player's WAR is split between his clubs. That total is then ranked against the other teams and put on the same 50–99 scale. With only 30 teams the steps are coarse: the top team is always 99 and the bottom team lands at 57.
 
 These ratings describe relative performance and underlying player attributes. They are not validated forecasts of future performance.
 

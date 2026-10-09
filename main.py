@@ -5,7 +5,6 @@ YEAR = 2026
 
 
 def main():
-    scores = {}
     batter_teams = []
     pitcher_teams = []
 
@@ -16,8 +15,6 @@ def main():
 
     for team_name, team_id in data_loader.team_ids.items():
         batters, pitchers = team_rating.team(YEAR, team_id, league_batters, league_pitchers)
-
-        scores[team_name] = team_rating.team_rating(team_id, batter_war, pitcher_war)
 
         batters = batters.assign(team=team_name)
         pitchers = pitchers.assign(team=team_name)
@@ -31,12 +28,12 @@ def main():
     data_loader.save_df(all_batters, "batter.parquet")
     data_loader.save_df(all_pitchers, "pitcher.parquet")
 
+    team_names = {team_id: name for name, team_id in data_loader.team_ids.items()}
+    scores = team_rating.team_ratings(batter_war, pitcher_war)
     scores = (
-        pd.DataFrame(
-            scores.items(),
-            columns=["team", "rating"],
-        )
-        .sort_values("rating", ascending=False)
+        scores.assign(team=scores['team_id'].map(team_names))
+        [['team', 'WAR', 'rating']]
+        .sort_values('WAR', ascending=False)
         .reset_index(drop=True)
     )
     data_loader.save_df(scores, 'teams.parquet')
