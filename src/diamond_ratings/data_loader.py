@@ -88,6 +88,7 @@ def get_season_batting(year):
     batting = batting.drop(columns=["n_outs_above_average"])
 
     df = batting.merge(oaa[["player_id", "year", "outs_above_average"]], how = 'left', on=['player_id', 'year'], validate='1:1')
+    df = df[df['year'] == year]
     return df
 
 

@@ -18,12 +18,14 @@ def batter_ratings(year):
     
     contact = batter.get_contact(season)
     power = batter.get_power(season)
-    speed = batter.get_speed()
+    speed = batter.get_speed(season)
+    speed = speed[['player_id', 'speed', 'year']]    
+    
+    score = pd.merge(left=contact, right=power, how='outer', on=['player_id', 'year', 'last_name, first_name'], validate='1:1')
+    score = score.merge(speed, how='right', on=['player_id', 'year'], validate='1:1')
+    score.rename(columns={'last_name, first_name':'name', 'contact_score':'contact', 'score':'power', 'contact_product' : ''})
+
+    return score.dropna()
     
     
-    contact = [['player_id', 'last_name, first_name', 'contact_score']]
-    
-    power = [[]]
-    
-    
-    score = pd.merge(contact, power, how)
+    #score = score.merge(speed, how='left')
