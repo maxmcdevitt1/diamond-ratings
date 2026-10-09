@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-6E7681?style=for-the-badge&logo=python&logoColor=white)](#install)
 [![GitHub](https://img.shields.io/badge/maxmcdevitt1%2Fdiamond--ratings-00852E?style=for-the-badge&labelColor=24292F)](https://github.com/maxmcdevitt1/diamond-ratings)
 
-[How it Works](#how-it-works) · [Data](#data) · [Credits](#credits)
+[How it Works](#how-it-works) · [Install](#install) · [Data](#data) · [Credits](#credits)
 
 </div>
 
@@ -14,7 +14,9 @@
 
 **Diamond Ratings** is a Python project that converts MLB player data into video game-style **player ratings**.
 
-The project currently produces pitcher and hitter attributes, evaluates active MLB rosters, and combines player results into team ratings. Pitcher attributes include velocity, movement, command, whiff rate, wOBA allowed, and WAR, while hitter attributes currently include power, contact, and WAR. The long-term goal is to use these ratings alongside team statistics to predict final team performance and season results.
+The project rates every pitcher and hitter in a season on a 50–99 scale, filters those league-wide ratings down to each team's 40-man roster, and scores each team by the WAR its players produced. Pitcher attributes are velocity, movement, whiff rate, wOBA allowed, and control; hitter attributes are power, contact, and speed. Both get an overall (OVR) derived from WAR. The long-term goal is to use these ratings alongside team statistics to predict final team performance and season results.
+
+## Project status
 
 > [!NOTE]
 > In development
@@ -22,107 +24,140 @@ The project currently produces pitcher and hitter attributes, evaluates active M
 | Area | Current state |
 |---|---|
 | Data loading | Statcast downloads, MLB roster lookups, and local Parquet/CSV readers |
-| Pitcher attributes | Velocity, movement, command, WAR, whiff rate, and wOBA calculations |
-| Hitter ratings | Power, contact, and WAR calculations |
-| Team ratings & predictions | Team ratings implemented; predictive modeling planned |
+| Pitcher ratings | Velocity, movement, whiff, wOBA allowed, control, and OVR |
+| Hitter ratings | Power, contact, speed, and OVR |
+| Team ratings | Sum of Baseball-Reference WAR produced for each team |
+| Predictions | Planned |
+| Tests | Not written yet |
 
 ## How it Works
 
 ### Summary
 
-- Load pitch-level Statcast data and season-level supporting datasets.
-- Retrieve active MLB rosters and separate pitchers from position players.
-- Measure player attributes against the season’s comparison group.
-- Convert selected attributes and performance statistics into percentile scores.
-- Generate pitcher and hitter rating datasets for each MLB team.
-- Combine player results into team-level ratings.
-- Use the resulting team ratings and additional team statistics as features for future predictive models.
+- Load a season of pitch-level Statcast data and the season-level supporting datasets.
+- Calculate every attribute once for the whole league, one row per player.
+- Convert each attribute to a 50–99 rating against the other players in that season.
+- Retrieve each team's 40-man roster and filter the league-wide ratings down to it.
+- Sum each team's WAR into a team rating.
+- Save the results as `batter.parquet`, `pitcher.parquet`, and `teams.parquet`.
 
 The broader project direction is described in [objective.md](objective.md).
-
-### Load pitching data
-
-The loader requests **2021–2026** Statcast data, using March 27 through October 1 for each year. It saves one Parquet file per year in `data/pitching_data/` and skips files already present.
-
-The project also uses MLB roster data to identify active players for each team and connect those players to the appropriate pitching and batting datasets.
-
-> The first Statcast download can take a while because multiple seasons contain millions of individual pitches. The fixed date windows may omit games outside those dates, and an existing file is not automatically refreshed as a season progresses.
 
 ### Pipeline
 
 ```text
-Statcast                     OpenCommand           FanGraphs
-   │                              │                    │
-   ▼                              ▼                    ▼
-Season Parquet files         Command CSVs          Pitching CSVs
-   │                              │                    │
-   ▼                              └─────────┬──────────┘
-Velocity · Movement · Whiff · wOBA          │
-   │                                        │
-   ▼                                        ▼
-Attribute percentiles          Command / WAR integration
-   └──────────────────┬─────────────────────┘
-                      ▼
-            Combined player ratings
-                      │
-                      ▼
-       Team ratings → Game / season predictions
+Statcast pitches        OpenCommand        Baseball Savant       Baseball-Reference
+      │                      │              batting stats            WAR CSVs
+      ▼                      ▼                    │                      │
+Velocity · Movement       Control                 ▼                      │
+Whiff · wOBA allowed         │          Power · Contact · Speed          │
+      └──────────┬───────────┘                    │                      │
+                 ▼                                ▼                      ▼
+      League-wide pitcher ratings      League-wide hitter ratings    OVR + team WAR
+                 └────────────────┬───────────────┘                      │
+                                  ▼                                      │
+                    Filter to each 40-man roster  ◄──────────────────────┘
+                                  │
+                                  ▼
+               batter.parquet · pitcher.parquet · teams.parquet
 ```
 
 | File | Role |
 |---|---|
-| [src/diamond_ratings/data_loader.py](src/diamond_ratings/data_loader.py) | Download and load datasets, retrieve MLB rosters, look up player IDs, and save generated results |
-| [src/diamond_ratings/pitcher_attributes.py](src/diamond_ratings/pitcher_attributes.py) | Calculate pitcher attributes and supporting metrics |
-| [src/diamond_ratings/pitcher_rating.py](src/diamond_ratings/pitcher_rating.py) | Generate pitcher percentile scores and player rating data |
+| [main.py](main.py) | Run the full pipeline for one season and save the three output files |
+| [src/diamond_ratings/data_loader.py](src/diamond_ratings/data_loader.py) | Download and load datasets, retrieve MLB rosters, map player IDs, and save results |
+| [src/diamond_ratings/pitcher_attributes.py](src/diamond_ratings/pitcher_attributes.py) | Calculate raw pitcher attributes |
+| [src/diamond_ratings/batter_attributes.py](src/diamond_ratings/batter_attributes.py) | Calculate raw hitter attributes |
+| [src/diamond_ratings/scale.py](src/diamond_ratings/scale.py) | Convert raw values to the 50–99 rating scale |
+| [src/diamond_ratings/get_scores.py](src/diamond_ratings/get_scores.py) | Combine attributes into one league-wide ratings table for pitchers and one for hitters |
+| [src/diamond_ratings/team_rating.py](src/diamond_ratings/team_rating.py) | Filter ratings to a team's roster and calculate the team rating |
 | [src/diamond_ratings/woba_weights.py](src/diamond_ratings/woba_weights.py) | Store season-specific wOBA weights |
-| [src/diamond_ratings/batter_attributes.py](src/diamond_ratings/batter_attributes.py) / [src/diamond_ratings/batter_rating.py](src/diamond_ratings/batter_rating.py) | Calculate hitter attributes and generate hitter rating data |
+
+## Install
+
+The data files are stored with [Git LFS](https://git-lfs.com/), so install it before cloning. The Statcast files total roughly 580 MB.
+
+```bash
+git clone https://github.com/maxmcdevitt1/diamond-ratings
+cd diamond-ratings
+git lfs pull
+pip install -e .
+python main.py
+```
+
+`main.py` rates the season set by `YEAR` at the top of the file, needs an internet connection for the roster and player-ID lookups, and overwrites the three output files in `data/`.
+
+The package reads from the `data/` folder of the repository, so it has to be installed in editable mode from a clone; a standalone wheel install will not find the data.
 
 ## Data
 
 ### Layout
 
-The repository includes batting data, FanGraphs data, OpenCommand data, and generated player-rating datasets. Large Statcast Parquet files are generated locally.
+| Path | Seasons | Source | Contents |
+|---|---|---|---|
+| `data/pitching_data/<year>.parquet` | 2021–2026 | Statcast via pybaseball | Pitch-level records, regular season only |
+| `data/pitching_data/<year>command.csv` | 2024–2026 | OpenCommand | Command scores per pitcher and pitch type |
+| `data/pitching_data/<year>_bref_pitching_war.csv` | 2021–2026 | Baseball-Reference | Pitching WAR, one row per player per team |
+| `data/batting_data/<year>_bref_hitting_war.csv` | 2021–2026 | Baseball-Reference | Hitting WAR, one row per player per team |
+| `data/batting_data/stats.csv` | 2021–2026 | Baseball Savant | Season batting, expected, and batted-ball statistics |
+| `data/batting_data/outs_above_average.csv` | 2021–2026 | Baseball Savant | Outs above average |
 
-| Path | Seasons | Contents |
-|---|---|---|
-| `data/pitching_data/<year>.parquet` | 2021–2026 requested by the loader | Downloaded pitch-level Statcast records |
-| `data/pitching_data/<year>command.csv` | 2024–2026 included | OpenCommand command scores |
-| `data/fangraphs/fg_pitching_<year>.csv` | 2020–2026 included | FanGraphs pitching statistics |
-| `data/batting_data/<year>_batting.csv` | 2021–2026 included | Season-level batting datasets |
+`data_loader.get_all_pitchers()` downloads any missing Statcast season, using March 27 through October 1 of each year. The fixed window can omit games outside those dates, and an existing file is not refreshed as a season progresses.
 
-**Player matching:** MLBAM IDs are used as the primary identifier across most of the project. Statcast identifies pitchers through the `pitcher` field, FanGraphs pitching data uses `xMLBAMID`, and batting datasets use `player_id`. MLB roster data is used to determine which active players belong to each team.
+**Player matching:** MLBAM IDs are the primary identifier. Statcast uses the `pitcher` field, Baseball Savant and OpenCommand use `player_id` / `pitcher_id`, and Baseball-Reference IDs are converted to MLBAM IDs through pybaseball's lookup table. A player missing from that table gets no WAR or OVR.
 
-The project also generates `data/batter.parquet` and `data/pitcher.parquet`, which contain league-wide player ratings with team names and team IDs attached.
+### Output
+
+| File | Columns |
+|---|---|
+| `data/batter.parquet` | `player_id`, `name`, `year`, `contact`, `power`, `speed`, `WAR`, `OVR`, `team` |
+| `data/pitcher.parquet` | `player_id`, `name`, `year`, `velocity`, `movement`, `whiff`, `woba`, `control`, `WAR`, `OVR`, `team` |
+| `data/teams.parquet` | `team`, `rating` |
+
+Only players who qualify for at least one attribute appear. A pitcher who qualifies for some attributes but not others has empty values for the ones he misses.
 
 ## Topics
 
 ### What goes into a pitcher rating?
 
-| Attribute | Current calculation |
+| Attribute | Calculation | Minimum |
+|---|---|---|
+| **Velocity** | Median velocity across four-seamers (`FF`), sinkers (`SI`), and cutters (`FC`), relative to the league median | More than 100 fastballs |
+| **Movement** | Induced movement magnitude from `pfx_x` and `pfx_z` in inches, measured against the league average for that pitch type, then averaged by pitch category | More than 350 pitches |
+| **Whiff** | Misses divided by swings, using the event groups defined in `get_whif()` | 100 swings |
+| **wOBA allowed** | Weighted plate-appearance outcomes using that season's wOBA weights; lower is better | More than 200 pitches |
+| **Control** | OpenCommand's `inferred_in` for `ALL` pitches; lower is better | More than 200 pitches |
+| **OVR** | Baseball-Reference pitching WAR | None |
+
+The movement score weights pitch categories **0.6 breaking**, **0.6 offspeed**, **0.1 fastball**, and **0.8 knuckleball**. A pitcher who doesn't throw a category is scored on the ones he does throw.
+
+### What goes into a hitter rating?
+
+Hitters need more than 200 plate appearances to receive attribute ratings.
+
+| Attribute | Calculation |
 |---|---|
-| **Velocity** | Median fastball velocity across four-seamers (`FF`), sinkers (`SI`), and cutters (`FC`), ranked against other pitchers in the season |
-| **Movement** | Induced movement magnitude from `pfx_x` and `pfx_z`, converted to inches and compared within pitch categories |
-| **Whiff** | Misses divided by swings using the event groups defined in `get_whif()`, then ranked by percentile |
-| **wOBA allowed** | Weighted plate-appearance outcomes using that season’s wOBA weights; lower wOBA allowed earns a higher percentile |
-| **Command** | OpenCommand’s `inferred_in` metric for `ALL` pitches with at least 200 observations, converted into a percentile score |
-| **WAR** | FanGraphs WAR converted into a season-relative percentile and currently used in team-level aggregation |
-
-The movement score weights category percentiles **50% breaking**, **30% offspeed**, and **20% fastball**. If a pitcher does not have a qualifying pitch category, the available categories are reweighted rather than requiring all three.
-
-The current pitcher output reports the individual attributes separately. A final combined pitcher overall rating is still being developed.
+| **Power** | Average of ISO, barrel rate, and EV50, each scaled from 0 to 1 across qualified hitters |
+| **Contact** | 75% the average of batting average and expected batting average, 25% contact rate (100 minus whiff percentage) |
+| **Speed** | Sprint speed |
+| **OVR** | Baseball-Reference hitting WAR |
 
 ### How should I read the scores?
 
-Most player attributes are expressed as percentile scores relative to the players in that season’s comparison group. A score near 90 means the player ranked around the 90th percentile for that metric, while a score near 50 represents roughly league-average performance within the measured group.
+Every attribute is ranked against the other qualified players in that season, and the ranking is mapped onto a bell curve centered on **75** with a standard deviation of 10, limited to **50–99**. A 75 is the league median for that attribute, an 85 is roughly the 84th percentile, and a 95 is roughly the 98th.
 
-These ratings describe relative performance and underlying player attributes. They are not currently validated forecasts of future performance.
+OVR is built from WAR, which accumulates with playing time, so it reflects how much a player has contributed over the season rather than how good he is per game.
 
-Team ratings are currently calculated from the median WAR percentiles of a team’s pitchers and hitters. Future versions will incorporate the broader Diamond Ratings attributes and use team-level features in predictive models for final win-loss percentage and season performance.
+**Team ratings** are the sum of the WAR each player produced while on that team, so a traded player's WAR is split between his clubs.
+
+These ratings describe relative performance and underlying player attributes. They are not validated forecasts of future performance.
 
 ## Credits
 
 - [pybaseball](https://github.com/jldbc/pybaseball) — Statcast access and player ID lookup.
-- [FanGraphs](https://www.fangraphs.com/) — supporting pitching statistics.
+- [python-mlb-statsapi](https://github.com/zero-sum-seattle/python-mlb-statsapi) — MLB roster data.
+- [Baseball Savant](https://baseballsavant.mlb.com/) — season batting statistics and outs above average.
+- [Baseball-Reference](https://www.baseball-reference.com/) — WAR.
 - [OpenCommand](https://github.com/tomdoyo/open-command) by [tomdoyo](https://github.com/tomdoyo) — command data.
 
 OpenCommand’s upstream code and data are released under [CC BY-NC-SA 4.0](https://github.com/tomdoyo/open-command/blob/main/LICENSE).
