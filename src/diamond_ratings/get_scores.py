@@ -17,10 +17,11 @@ PITCHER_WEIGHTS = {
     'velocity': 0.10,
 }
 BATTER_WEIGHTS = {
-    'contact': 0.30,
-    'power': 0.30,
-    'WAR': 0.30,
+    'contact': 0.15,
+    'power': 0.15,
+    'WAR': 0.50,
     'speed': 0.10,
+    'fielding' : 10,
 }
 MIN_ATTRIBUTES = 3  # attributes (not counting WAR) needed for an OVR
 
@@ -73,12 +74,16 @@ def batter_ratings(year):
     season = dl.get_season_batting(year)
 
     contact = batter.get_contact(season)[['player_id', 'last_name, first_name', 'contact_score']]
-    power = batter.get_power(season)[['player_id', 'power_score']]
-    speed = batter.get_speed(season)[['player_id', 'speed']]
+    power = batter.get_power(season)[['player_id', 'last_name, first_name', 'power_score']]
+    speed = batter.get_speed(season)[['player_id', 'last_name, first_name', 'speed']]
+    fielding = batter.fielding(year)
+
+    ## TODO: apply a mapping to replace the name with a reverse player id lookup so all names are resolved.
+
 
     score = reduce(
         lambda a, b: a.merge(b, on='player_id', how='outer', validate='1:1'),
-        [contact, power, speed],
+        [contact, power, speed, fielding],
     )
 
     out = pd.DataFrame({
@@ -88,6 +93,7 @@ def batter_ratings(year):
         'contact': score['contact_score'],
         'power': score['power_score'],
         'speed': score['speed'],
+        'fielding' : score['fielding']
     })
 
     out = out.merge(_war_by_id(batter.war(year)), on='player_id', how='left', validate='1:1')

@@ -5,6 +5,7 @@ YEAR = 2026
 
 
 def main():
+    data_loader.get_all_pitchers()
     batter_teams = []
     pitcher_teams = []
 

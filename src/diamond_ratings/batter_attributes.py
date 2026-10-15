@@ -57,3 +57,9 @@ def get_speed(df):
 def war(year):
     df = load.get_war(year, is_pitcher=False, for_team=False)
     return df.drop_duplicates(subset=['player_id']).copy()
+
+
+def fielding(year):
+    df = load.get_fielding(year)
+    df['fielding'] = to_rating(df['total_runs'])
+    return df

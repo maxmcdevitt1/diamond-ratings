@@ -84,11 +84,9 @@ def get_team(team_id, year):
 
 def get_season_batting(year):
     # STATCAST
-    oaa = pd.read_csv(data_dir/'batting_data'/'outs_above_average.csv')
-    batting = pd.read_csv(data_dir/'batting_data'/'stats.csv', encoding="utf-8-sig")
-    batting = batting.drop(columns=["n_outs_above_average"])
+    df = pd.read_csv(data_dir/'batting_data'/'stats.csv', encoding="utf-8-sig")
+    df = df.drop(columns=["n_outs_above_average"])
 
-    df = batting.merge(oaa[["player_id", "year", "outs_above_average"]], how = 'left', on=['player_id', 'year'], validate='1:1')
     df = df[df['year'] == year]
     return df
 
@@ -186,3 +184,10 @@ def get_war(year, is_pitcher, for_team):
 
 def save_df(df, filename):
     df.to_parquet(data_dir / filename, index=False)
+
+def get_fielding(year):
+    df = pd.read_csv(data_dir/"fielding"/f'{year}frv.csv')
+    df = df[df['year'] == year]
+    df = df.rename(columns={'id':'player_id', 'name' : 'last_name, first_name'})
+    
+    return df[['name', 'player_id', 'year', 'total_runs']]
